@@ -1,0 +1,45 @@
+#! python
+'''
+Start up a MeasurementEventManager instance with the specified sockets.
+'''
+
+from __future__ import print_function
+import itertools
+
+import zmq
+
+import measurement_event_manager as mem
+
+
+## Initialize ZMQ messaging
+###############################################################################
+
+REQUEST_TIMEOUT = 2500
+CLIENT_ENDPOINT = 'tcp://*:5555'
+
+context = zmq.Context()
+
+server = context.socket(zmq.REP)
+server.bind(CLIENT_ENDPOINT)
+
+
+## Listen for requests
+###############################################################################
+
+print('Listening on endpoint', CLIENT_ENDPOINT)
+
+for server_cycles in itertools.count():
+    
+    ## Receive request
+    request = server.recv()
+    print('Request received.')
+
+    ## Parse request
+    print('Request content is:')
+    print(request)
+
+    ## Send response
+    print('Sending response...')
+    response = 'Request received.'.encode()
+    server.send(response)
+    print('Response sent; listening...')
