@@ -15,28 +15,29 @@ import measurement_event_manager as mem
 ## Initialize ZMQ messaging
 ###############################################################################
 
-PROTOCOL_ID = "MEM-GR/0.1"
-REQUEST_TIMEOUT = 2500
-CLIENT_ENDPOINT = 'tcp://*:5555'
+GUIDE_PROTOCOL = "MEM-GR/0.1"
+GUIDE_TIMEOUT = 2500
+GUIDE_ENDPOINT = 'tcp://*:5555'
 
 context = zmq.Context()
 
-server = context.socket(zmq.REP)
-server.bind(CLIENT_ENDPOINT)
+## Set up guide response socket
+guide = context.socket(zmq.REP)
+guide.bind(GUIDE_ENDPOINT)
 
 
 ###############################################################################
 ## Listen for requests
 ###############################################################################
 
-print('Listening on endpoint', CLIENT_ENDPOINT)
+print('Listening on endpoint', GUIDE_ENDPOINT)
 
-for server_cycles in itertools.count():
+for server_tick in itertools.count():
     
     ## Receive request
     ##################
 
-    request = server.recv_multipart()
+    request = guide.recv_multipart()
     print('Request received.')
 
 
@@ -45,24 +46,36 @@ for server_cycles in itertools.count():
 
     print('Request content is:')
     print(request)
-    ## Unpack request content
+    
+    ## Identify request protocol
     req_protocol = request[0]
+    ## Make sure we have the correct protocol
+    if not (req_protocol == GUIDE_PROTOCOL):
+        print('Unrecognized protocol {}'.format(req_protocol))
+        guide.send_multipart([GUIDE_PROTOCOL.encode(), b'ERR',])
+    
+    ## Unpack remaining content
     req_type = request[1]
     req_content = request[2:]
 
-    ## Make sure we have the correct protocol
-    if not (req_protocol == PROTOCOL_ID):
-        print('Unrecognized protocol {}'.format(req_protocol))
-        server.send_multipart([PROTOCOL_ID.encode(), b'ERR',])
 
-    ## Check the type of request and parse content accordingly
+    ## Check request type and parse content accordingly
     if req_type == 'IDN':
         print('Identifying to client')
-        server.send_multipart([PROTOCOL_ID.encode(),
+        guide.send_multipart([GUIDE_PROTOCOL.encode(),
                                b'IDN',
                                'MeasurementEventManager at {}'.format(
-                                                CLIENT_ENDPOINT).encode()])
+                                                GUIDE_ENDPOINT).encode()])
         print('Response sent.')
     elif req_type == 'ADD':
-        pass
+        print('ADD requested; currently not implemented.')
+        guide.send_multipart([GUIDE_PROTOCOL.encode(),
+                              b'ADD',
+                              'foo'])
+        print('Response sent')
+    else:
+        print('Unknown request type: {}'.format(req_type))
+        guide.send_multipart([GUIDE_PROTOCOL.encode(),
+                              b'ERR',])
+        print('Response sent.')
 
