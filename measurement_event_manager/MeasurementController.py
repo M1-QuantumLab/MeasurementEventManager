@@ -3,13 +3,13 @@ Control a single measurement at a time
 Delegated to by the MeasurementEventManager
 '''
 
-## future imports must be at the top
-from __future__ import print_function
-
+import logging
 import multiprocessing
 import time
 
 import zmq
+
+import measurement_event_manager.util.logger as mem_logging
 
 
 ###############################################################################
@@ -44,6 +44,14 @@ class MeasurementController(object):
     '''
 
     def __init__(self, socket_endpoint, measurement_args=[]):
+        ## Initialize logging
+        logger = logging.getLogger('MeasurementController')
+        self.logger = mem_logging.quick_config(logger,
+                                               console_log_level=None,
+                                               file_log_level=logging.DEBUG,
+                                               )
+        self.logger.debug('Logging initialized.')
+
         self.running = False
         self.socket_endpoint = socket_endpoint
         ## Set up the ZMQ context
@@ -58,6 +66,8 @@ class MeasurementController(object):
     def connect_socket(self):
         self.meas_socket = self.context.socket(zmq.REQ)
         self.meas_socket.connect(self.socket_endpoint)
+        self.logger.debug('Connected to socket at {}'.format(
+                                                        self.socket_endpoint))
 
 
     ## Main measurement function
@@ -75,18 +85,18 @@ class MeasurementController(object):
         ## Measurement can officially start
         self.running = True
         ## Send measurement start confirmation
-        print('Sending measurement start confirmation...')
+        self.logger.debug('Sending measurement start confirmation...')
         self.meas_socket.send_multipart([MEAS_PROTOCOL.encode(), b'START'])
         ## Receive acknowledgement
-        print('Awaiting acknowledgement...')
+        self.logger.debug('Awaiting acknowledgement...')
         response = self.meas_socket.recv_multipart()
         
         ## Run the actual measurement
-        print('Starting measurement wrapper...')
+        self.logger.debug('Starting measurement wrapper...')
         
         measurement_wrapper()
 
-        print('Measurement wrapper start completed.')
+        self.logger.debug('Measurement wrapper start completed.')
 
         ## Send measurement completion confirmation
         self.meas_socket.send_multipart([MEAS_PROTOCOL.encode(), b'END'])
