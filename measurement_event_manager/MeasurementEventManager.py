@@ -6,6 +6,7 @@ import itertools
 
 import zmq
 
+from measurement_event_manager.MeasurementQueue import MeasurementQueue
 from measurement_event_manager import Protocols
 
 ###############################################################################
@@ -29,14 +30,12 @@ MEAS_SPAWN_ENDPOINT = 'tcp://localhost:5556'
 
 class MeasurementEventManager(object):
     
+
     def __init__(self, logger):
         ## Assign logger
         self.logger = logger
-
-        ## Set up message protocol handlers
-        self.protocols = {}
-        self.protocols['guide'] = Protocols.GuideProtocol(self.logger)
-        self.protocols['meas'] = Protocols.MeasurementProtocol(self.logger)
+        ## Create queue for measurements
+        self.queue = MeasurementQueue()
 
 
     def connect_sockets(self):
@@ -74,15 +73,28 @@ class MeasurementEventManager(object):
         for server_tick in itertools.count():
             self.logger.debug('Server tick {}'.format(server_tick))
 
+            ## TODO I think we need to check if we need to start the next 
+            ## measurement *before* we do the blocking call to poll()
+
             ## Get poll on all sockets
             poll_all = dict(self.poller.poll())
 
-            ## Identify request and process accordingly
+            ## Identify request and pass to protocol handlers
+            ## along with the state machine (the measurement queue)
+            ## This way, the protocol handlers don't need to know any details
+            ## of the MEM in order to modify the state.
             
             if poll_all.get(self.guide_socket, None) == zmq.POLLIN:
                 self.logger.debug('Incoming message on guide socket.')
-                self.protocols['guide'].process_request(self.guide_socket)
+                Protocols.process_request(socket=self.guide_socket,
+                                          socket_type='guide',
+                                          logger=self.logger,
+                                          queue=self.queue,
+                                          )
             
             elif poll_all.get(self.meas_socket, None) == zmq.POLLIN:
                 self.logger.debug('Incoming message on measurement socket.')
-                self.protocols['meas'].process_request(self.meas_socket)
+                Protocols.process_request(socket=self.meas_socket,
+                                          socket_type='measurement',
+                                          logger=self.logger,
+                                          )

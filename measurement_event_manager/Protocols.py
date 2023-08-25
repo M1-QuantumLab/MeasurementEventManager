@@ -4,118 +4,133 @@ Parsing and (un)packing messages for the various MEM protocols.
 
 
 ###############################################################################
-## Base Protocol class
+## Protocol definitions
 ###############################################################################
 
-class Protocol(object):
-    '''The base Protocol class
 
-    Not intended to be used as a standalone, should be subclassed.
+def gr_parser(logger, request_content, queue, *args):
+    '''Parse MEM-GR/0.1 requests
     '''
-    protocol_id = None
 
-    def __init__(self, logger):
-        self.logger = logger
+    ## Placeholder list so we can append response content to it
+    response_body = []
 
+    ## Separate out the request header
+    header = request_content[0]
+    content = request_content[1:]
 
-    def process_request(self, socket):
-        ## Read request from socket
-        request_msg = socket.recv_multipart()
-        self.logger.debug('Request received: {}'.format(request_msg))
+    if header == 'IDN':
+        logger.info('IDN request received.')
+        response_header = 'IDN'
+        ## TODO Write proper IDN info
+        response_body.append('')
 
-        ## Identify request protocol
-        req_protocol = request_msg[0]
-        if not (req_protocol == self.protocol_id):
-            ## The protocol is not what is expected
-            self.logger.error('Unexpected protocol {}'.format(req_protocol))
-            ## TODO we need to actually send a response here
-            ## otherwise the requesting socket will hang
-            return False
-        
-        ## Process remaining content
-        response = self.parse_request_content(request_msg[1:])
+    elif header == 'ADD':
+        logger.info('ADD request received.')
+        ## TODO this will probably require a bit more preprocessing alongside
+        ## an implementation of a MeasurementParams struct
+        queue.add(request_content)
+        response_header = 'ADD'
+        response_body.append('Measurement added to queue')
 
-        ## Ensure the response is encoded
-        response_enc = [xx.encode() for xx in response]
-        ## Append protocol identifier to response content
-        response_msg = [self.protocol_id.encode()] + response_enc
-        ## Send response
-        socket.send_multipart(response_msg)
-        self.logger.debug('Response sent: {}'.format(response_msg))
+    ## TODO add more possible requests
 
+    else:
+        logger.error('Unknown request header {}'.format(header))
+        response_header = 'ERR'
+        response_body.append('Unknown request header {}'.format(header))
 
-    def parse_request_content(self, request):
-        '''Null parser function to be overwritten in subclasses.
-        '''
-        return []
+    ## Return the header and content as a single list for multipart msg
+    response_content = [response_header] + response_body
+    ## Make sure it's encoded into binary
+    return [xx.encode() for xx in response_content]
 
 
-###############################################################################
-## Guide protocol - MEM-GR
-###############################################################################
-
-
-class GuideProtocol(Protocol):
-    '''Protocol definitions for MEM-GR messages.
+def ms_parser(logger, request_content, *args):
+    '''Parse MEM-MS/0.1 requests
     '''
-    protocol_id = 'MEM-GR/0.1'
 
-    def parse_request_content(self, request):
+    ## Placeholder list so we can append content to it
+    response_body = []
 
-        ## Placeholder list so we can append response content to it
-        response_content = []
+    ## Separate out the request header
+    request_header = request_content[0]
 
-        ## Separate out the request header
-        header = request[0]
-        content = request[1:]
+    if request_header == 'START':
+        response_header = 'ACK'
 
-        if header == 'IDN':
-            self.logger.info('IDN request received.')
-            response_header = 'IDN'
-            ## TODO figure out the best way to get ID info to this point
-            response_content.append('')
+    elif request_header == 'END':
+        response_header = 'ACK'
 
-        elif header == 'ADD':
-            self.logger.info('ADD request received.')
-            ## TODO interface with the queuing system
-            response_header = 'ADD'
-            response_content.append('Not implemented!')
+    ## TODO include information about the measurement in the response body?
 
-        else:
-            self.logger.error('Unknown request header {}'.format(header))
-            response_header = 'ERR'
-            response_content.append('Unknown request header {}'.format(header))
-
-        ## Return the header and content as a single list for multipart msg
-        return [response_header] + response_content
+    ## Return the header and content as a single list for multipart msg
+    response_content = [response_header] + response_body
+    ## Make sure it's encoded into binary
+    return [xx.encode() for xx in response_content]
 
 
 ###############################################################################
-## Measurement protocol - MEM-MS
+## Protocol mappings
+###############################################################################
+
+## TODO these should eventually go into some config files
+
+## Available protocols for each socket type
+SOCKET_PROTOCOLS = {
+    'guide': [
+        'MEM-GR/0.1',
+    ],
+    'measurement': [
+        'MEM-MS/0.1',
+    ],
+}
+
+
+## Parsers for each protocol
+PROTOCOL_PARSERS = {
+    'MEM-GR/0.1': gr_parser,
+    'MEM-MS/0.1': ms_parser,
+}
+
+
+###############################################################################
+## High-level request processing function
 ###############################################################################
 
 
-class MeasurementProtocol(Protocol):
-    '''Protocol definitions for MEM-MS messages.
+def process_request(socket, socket_type, logger, **kwargs):
+    '''Generic processor for incoming requests
+
+    Selects the appropriate parser based on the socket_type and request
+    protocol conformance. Any additional kwargs are passed to the parser, to
+    allow the request to modify eg the state of a MeasurementQueue.
     '''
-    protocol_id = 'MEM-MS/0.1'
+    ## Fetch the request from the socket
+    request = socket.recv_multipart()
 
-    def parse_request_content(self, request):
+    ## Extract the message protocol used
+    req_protocol = request[0]
+    ## If this is a valid protocol for the given socket type, pass it to the
+    ## appropriate parser
+    if req_protocol in SOCKET_PROTOCOLS[socket_type]:
+        ## Fetch the right parser
+        parser = PROTOCOL_PARSERS[req_protocol]
+        ## Get the response and carry out instructed operations 
+        ## Note that kwargs such as the MeasurementQueue object are passed to
+        ## the parser, so their state can be modified by the incoming request
+        ## via their exposed API calls.
+        response_content = parser(logger, request[1:], **kwargs)
 
-        ## Placeholder list so we can append content to it
-        response_content = []
+    else:
+        ## Not a valid protocol for the socket type!
+        logger.error('Invalid protocol {} for socket type {}'.format(
+                                                    req_protocol, socket_type))
+        ## This will return an error message marked with the same protocol
+        response_content = [b'ERR']
 
-        ## Separate out the request header
-        header = request[0]
-        content = request[1:]
+    ## Prepare the response message
+    response = [req_protocol.encode()] + response_content
+    ## Send the response
+    socket.send_multipart(response)
 
-        if header == 'START':
-            response_header = 'ACK'
-            pass
-
-        elif header == 'END':
-            response_header = 'ACK'
-            pass
-
-        ## Return the header and content as a single list for multipart msg
-        return [response_header] + response_content
