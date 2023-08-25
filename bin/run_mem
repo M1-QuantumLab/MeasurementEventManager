@@ -3,19 +3,18 @@
 Start up a MeasurementEventManager instance with the specified sockets.
 '''
 
-import itertools
 import logging
-from multiprocessing import Process
-import time
-import zmq
 
 import measurement_event_manager as mem
 import measurement_event_manager.util.logger as mem_logging
 
 
 ###############################################################################
-## Initialize logging
+## Initialization
 ###############################################################################
+
+## Logging
+##########
 
 logger = mem_logging.quick_config(
                         logging.getLogger('MeasurementEventManager'),
@@ -26,73 +25,14 @@ logger.debug('Logging initialized.')
 
 
 ###############################################################################
-## Initialize ZMQ messaging
+## MeasurementEventManager
 ###############################################################################
 
-GUIDE_PROTOCOL = "MEM-GR/0.1"
-GUIDE_TIMEOUT = 2500 # in ms
-GUIDE_ENDPOINT = 'tcp://*:5555'
+## Instantiate object
+mem_server = mem.MeasurementEventManager.MeasurementEventManager(logger)
+## Set up connections
+## TODO get connection parameters (addresses etc.) from user-defined config
+mem_server.connect_sockets()
 
-MEAS_PROTOCOL = 'MEM-MS/0.1'
-MEAS_ENDPOINT = 'tcp://*:5556'
-MEAS_SPAWN_ENDPOINT = 'tcp://localhost:5556'
-
-
-## Create ZMQ context - once for the whole script
-context = zmq.Context()
-
-## Set up guide response socket
-guide_socket = context.socket(zmq.REP)
-guide_socket.bind(GUIDE_ENDPOINT)
-logger.debug('Guide response socket initialized.')
-
-## Set up measurement controller response socket
-meas_socket = context.socket(zmq.REP)
-meas_socket.bind(MEAS_ENDPOINT)
-logger.debug('Measurement controller response socket initialized.')
-
-## Initialize poller
-poller = zmq.Poller()
-poller.register(guide_socket, zmq.POLLIN)
-poller.register(meas_socket, zmq.POLLIN)
-
-## Protocol handlers
-####################
-
-guide_handler = mem.Protocols.GuideProtocol(logger)
-meas_handler = mem.Protocols.MeasurementProtocol(logger)
-
-
-###############################################################################
 ## Main event loop
-###############################################################################
-
-logger.info('Setup complete; listening for messages.')
-
-for server_tick in itertools.count():
-    
-    logger.debug('Server tick {}'.format(server_tick))
-
-    ## Get socket polls
-    ## These will be resolved in the order below on each tick
-    all_sockets = dict(poller.poll())
-
-
-    ## Guide request
-    ################
-
-    if all_sockets.get(guide_socket, None) == zmq.POLLIN:
-        logger.debug('Guide message polled.')
-        
-        guide_handler.process_request(guide_socket)
-
-
-    ## Measurement request
-    ######################
-
-    if all_sockets.get(meas_socket, None) == zmq.POLLIN:
-        logger.debug('Measurement message polled.')
-
-        meas_handler.process_request(meas_socket)
-
-    ## Main event loop end
+mem_server.run_event_loop()
