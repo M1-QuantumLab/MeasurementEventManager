@@ -1,2 +1,3 @@
-from .MeasurementController import *
-from .MeasurementEventManager import *
+from . import MeasurementController
+from . import MeasurementEventManager
+from . import Protocols

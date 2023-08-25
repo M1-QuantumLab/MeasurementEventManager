@@ -56,6 +56,12 @@ poller = zmq.Poller()
 poller.register(guide_socket, zmq.POLLIN)
 poller.register(meas_socket, zmq.POLLIN)
 
+## Protocol handlers
+####################
+
+guide_handler = mem.Protocols.GuideProtocol(logger)
+meas_handler = mem.Protocols.MeasurementProtocol(logger)
+
 
 ###############################################################################
 ## Main event loop
@@ -78,45 +84,7 @@ for server_tick in itertools.count():
     if all_sockets.get(guide_socket, None) == zmq.POLLIN:
         logger.debug('Guide message polled.')
         
-        ## Process received message
-        request = guide_socket.recv_multipart()
-
-        ## Identify request protocol
-        req_protocol = request[0]
-        ## Make sure we have the correct protocol
-        if not (req_protocol == GUIDE_PROTOCOL):
-            logger.error('Unrecognized protocol {}'.format(req_protocol))
-            guide_socket.send_multipart([GUIDE_PROTOCOL.encode(), b'ERR',])
-        
-        ## Unpack remaining content
-        req_type = request[1]
-        req_content = request[2:]
-
-        ## Check request type and parse content accordingly
-        if req_type == 'IDN':
-            logger.info('Identifying to client')
-            guide_socket.send_multipart([GUIDE_PROTOCOL.encode(),
-                                b'IDN',
-                                'MeasurementEventManager at {}'.format(
-                                                    GUIDE_ENDPOINT).encode()])
-            logger.debug('Response sent.')
-        elif req_type == 'ADD':
-            logger.info('ADD requested; running next measurement.')
-            ## Run measurement using MeasurementController
-            ## TODO this needs to be replaced by the proper queuing system
-            Process(target=mem.MeasurementController,
-                    args=(MEAS_SPAWN_ENDPOINT,),
-                   ).start()
-            ## Send response
-            guide_socket.send_multipart([GUIDE_PROTOCOL.encode(),
-                                b'ADD',
-                                'foo'])
-            logger.info('Response sent')
-        else:
-            logger.warning('Unknown request type: {}'.format(req_type))
-            guide_socket.send_multipart([GUIDE_PROTOCOL.encode(),
-                                b'ERR',])
-            logger.info('Response sent.')
+        guide_handler.process_request(guide_socket)
 
 
     ## Measurement request
@@ -125,27 +93,6 @@ for server_tick in itertools.count():
     if all_sockets.get(meas_socket, None) == zmq.POLLIN:
         logger.debug('Measurement message polled.')
 
-        ## Process received message
-        request = meas_socket.recv_multipart()
-
-        ## Identify request protocol
-        req_protocol = request[0]
-        ## Make sure we have the correct protocol
-        if not (req_protocol == MEAS_PROTOCOL):
-            logger.error('Unrecognized protocol {}'.format(req_protocol))
-            meas_socket.send_multipart([MEAS_PROTOCOL.encode(), b'ERR',])
-
-        ## Unpack remaining content
-        req_type = request[1]
-        req_content = request[2:]
-
-        ## Check request type and parse content accordingly
-        if req_type == 'START':
-            logger.info('Measurement START received; confirming...')
-            meas_socket.send_multipart([MEAS_PROTOCOL.encode(), b'ACK',])
-        elif req_type == 'END':
-            logger.info('Measurement END received; confirming...')
-            meas_socket.send_multipart([MEAS_PROTOCOL.encode(), b'ACK',])
-        logger.info('Confirmation sent.')
+        meas_handler.process_request(meas_socket)
 
     ## Main event loop end
