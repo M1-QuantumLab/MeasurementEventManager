@@ -43,10 +43,13 @@ def _mp_from_json(json_dict):
     if 'MeasurementParams' in json_dict:
         mp_dict = json_dict['MeasurementParams']
         ## Pull out the start and stop times
-        start_time = datetime.datetime.strptime(mp_dict.pop('start_time',None),
-                                                ISO_STRPTIME)
-        stop_time = datetime.datetime.strptime(mp_dict.pop('stop_time', None),
-                                               ISO_STRPTIME)
+        ## If they are present, we need to parse them back into datetime
+        start_time = mp_dict.pop('start_time', None)
+        if start_time is not None:
+            start_time = datetime.datetime.strptime(start_time, ISO_STRPTIME)
+        stop_time = mp_dict.pop('stop_time', None)
+        if stop_time is not None:
+            stop_time = datetime.datetime.strptime(stop_time, ISO_STRPTIME)
         ## Create the object
         mp_obj = MeasurementParams(**mp_dict)
         ## Set the start and stop times

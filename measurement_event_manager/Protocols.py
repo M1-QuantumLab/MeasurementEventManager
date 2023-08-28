@@ -3,6 +3,9 @@ Parsing and (un)packing messages for the various MEM protocols.
 '''
 
 
+from measurement_event_manager import MeasurementParams
+
+
 ###############################################################################
 ## Protocol definitions
 ###############################################################################
@@ -27,11 +30,26 @@ def gr_parser(logger, request_content, queue, *args):
 
     elif header == 'ADD':
         logger.info('ADD request received.')
-        ## TODO this will probably require a bit more preprocessing alongside
-        ## an implementation of a MeasurementParams struct
-        queue.add(request_content)
+        ## Iterate over each measurement parameter set provided
+        for mp_spec in content:
+            ## Construct MeasurementParams object from JSON content
+            new_mp = MeasurementParams.from_json(mp_spec)
+            ## Add to the MeasurementQueue
+            added_index = queue.add(new_mp)
+            ## Add the index to the response body
+            response_body.append(str(added_index))
+        ## Set response header
         response_header = 'ADD'
-        response_body.append('Measurement added to queue')
+
+    elif header == 'QUE':
+        logger.info('QUE request received.')
+        ## Fetch queue information from MeasurementQueue
+        queue_list = queue.info()
+        ## Construct response
+        response_header = 'QUE'
+        for meas_item in queue_list:
+            response_body.append(str(meas_item))
+
 
     ## TODO add more possible requests
 
@@ -108,6 +126,8 @@ def process_request(socket, socket_type, logger, **kwargs):
     '''
     ## Fetch the request from the socket
     request = socket.recv_multipart()
+    logger.debug('Request received:')
+    logger.debug(request)
 
     ## Extract the message protocol used
     req_protocol = request[0]
