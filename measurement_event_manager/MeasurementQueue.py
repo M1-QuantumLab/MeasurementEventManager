@@ -45,9 +45,10 @@ class MeasurementQueue(object):
         return list(copy.deepcopy(self.queue))
 
 
-    def remove(self, index=0):
+    def remove(self, index=-1):
         '''Remove the measurement at the specified index
         '''
+        ## TODO allow this to operate on a range of indices
         del self.queue[index]
         return True
 

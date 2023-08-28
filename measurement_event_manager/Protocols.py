@@ -50,6 +50,20 @@ def gr_parser(logger, request_content, queue, *args):
         for meas_item in queue_list:
             response_body.append(str(meas_item))
 
+    elif header == 'RMV':
+        logger.info('RMV request received.')
+        ## Remove measurement from queue
+        ## TODO allow this to operate on a range of indices in a single
+        ## transaction (to prevent indices getting confusing)
+        try:
+            index = int(content[0])
+        except ValueError:
+            queue.remove()
+        else:
+            queue.remove(index)
+        ## Construct response
+        response_header = 'RMV'
+
 
     ## TODO add more possible requests
 
