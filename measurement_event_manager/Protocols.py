@@ -57,12 +57,20 @@ def gr_parser(logger, request_content, queue, *args):
         ## transaction (to prevent indices getting confusing)
         try:
             index = int(content[0])
-        except ValueError:
-            queue.remove()
+        except IndexError or ValueError:
+            ## IndexError means the content is empty
+            ## ValueError means the content cannot be coerced to an int
+            status = queue.remove()
         else:
-            queue.remove(index)
+            status = queue.remove(index)
         ## Construct response
-        response_header = 'RMV'
+        if status:
+            response_header = 'RMV'
+        else:
+            logger.warning('RMV failed; invalid index.')
+            response_header = 'ERR'
+            response_body.append('Invalid index')
+
 
 
     ## TODO add more possible requests

@@ -49,6 +49,13 @@ class MeasurementQueue(object):
         '''Remove the measurement at the specified index
         '''
         ## TODO allow this to operate on a range of indices
-        del self.queue[index]
-        return True
+        try:
+            del self.queue[index]
+        except IndexError:
+            ## Index is out of range
+            ## Can be because the index is invalid or the queue is empty
+            ## TODO we should probably differentiate between these two cases
+            return False
+        else:
+            return True
 
