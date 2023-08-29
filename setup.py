@@ -15,5 +15,6 @@ setuptools.setup(
     install_requires=_requires,
     scripts=[
             "bin/run_mem",
+            "bin/launch_measurement",
             ],
 )

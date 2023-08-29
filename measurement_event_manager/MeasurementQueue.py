@@ -8,6 +8,21 @@ import copy
 
 
 ###############################################################################
+## Errors and warnings
+###############################################################################
+
+
+## I don't think we want to subclass QueueEmptyError from IndexError directly,
+## as it seems logical to distinguish when the queue is empty (which is not in
+## of itself a bad occurrence) from when we have supplied an invalid index for
+## queue operations, which indicates a bona-fide user error.
+## So instead, we will subclass it from LookupError, which is the parent of
+## IndexError.
+class QueueEmptyError(LookupError):
+    pass
+
+
+###############################################################################
 ## MeasurementQueue class
 ###############################################################################
 
@@ -54,8 +69,21 @@ class MeasurementQueue(object):
         except IndexError:
             ## Index is out of range
             ## Can be because the index is invalid or the queue is empty
-            ## TODO we should probably differentiate between these two cases
+            ## TODO differentiate between these two cases properly
             return False
         else:
             return True
+
+
+    def pop_next(self):
+        '''Pop off and return the first measurement in the queue
+        '''
+        try:
+            meas = self.queue.popleft()
+        except IndexError:
+            ## In this case, as we are always trying to fetch the first
+            ## element, an IndexError can only occur if the queue is empty.
+            raise QueueEmptyError
+        else:
+            return meas
 
