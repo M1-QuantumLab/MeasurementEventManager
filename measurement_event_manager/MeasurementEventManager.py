@@ -3,6 +3,7 @@ The main MeasurementEventManager class.
 '''
 
 import itertools
+import os
 import subprocess
 
 import zmq
@@ -154,9 +155,9 @@ class MeasurementEventManager(object):
         ## Launch measurement with a MeasurementController instance
         self.logger.info('Launching measurement...')
         ## TODO we need to detach on Windows using subprocess.DETACHED_PROCESS
-        proc = subprocess.Popen(['launch_measurement',
+        proc = subprocess.Popen(['nohup', 'launch_measurement',
                                  MEAS_SPAWN_ENDPOINT],
-                                close_fds=True,
+                                preexec_fn=os.setpgrp,
                                 )
         return True
 
