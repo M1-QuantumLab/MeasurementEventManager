@@ -122,8 +122,8 @@ class MeasurementEventManager(object):
                                 socket=self.meas_socket,
                                 socket_type='measurement',
                                 logger=self.logger,
-                                get_fn=self.get_current_measurement,
-                                clear_fn=self.clear_current_measurement,
+                                req_callback=self.get_current_measurement_json,
+                                end_callback=self.clear_current_measurement,
                                 )
 
             ## End of main event loop
@@ -136,6 +136,10 @@ class MeasurementEventManager(object):
     def get_current_measurement(self):
         return self._current_measurement
     
+
+    def get_current_measurement_json(self):
+        return self.get_current_measurement().to_json()
+
 
     def clear_current_measurement(self):
         self._current_measurement = None

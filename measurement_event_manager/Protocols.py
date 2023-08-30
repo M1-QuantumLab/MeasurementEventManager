@@ -86,7 +86,11 @@ def gr_parser(logger, request_content, queue, *args):
     return [xx.encode() for xx in response_content]
 
 
-def ms_parser(logger, request_content, get_fn, clear_fn, *args):
+def ms_parser(logger, request_content,
+              req_callback=lambda *args: None,
+              start_callback=lambda *args: None,
+              end_callback=lambda *args: None,
+              *args):
     '''Parse MEM-MS/0.1 requests
     '''
 
@@ -98,21 +102,20 @@ def ms_parser(logger, request_content, get_fn, clear_fn, *args):
 
     if request_header == 'REQ':
         response_header = 'REQ'
-        ## Get the serialized data from the measurement params
-        response_body = [get_fn().to_json()]
+        response_body.append(req_callback())
 
     if request_header == 'START':
         response_header = 'ACK'
+        response_body.append(start_callback())
 
     elif request_header == 'END':
         response_header = 'ACK'
-        ## Clear the stored measurement params
-        clear_fn()
+        response_body.append(end_callback())
 
     ## Return the header and content as a single list for multipart msg
     response_content = [response_header] + response_body
     ## Make sure it's encoded into binary
-    return [xx.encode() for xx in response_content]
+    return [xx.encode() for xx in response_content if xx is not None]
 
 
 ###############################################################################
