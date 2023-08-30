@@ -78,8 +78,12 @@ def from_json(json_object):
 class MeasurementParams(object):
 
     def __init__(self,
-                 params=None,
+                 measurement_type="default",
+                 setvals=None,
                  ):
+
+        ## Measurement type descriptor
+        self.measurement_type = measurement_type
 
         ## Start and end datetime markers - begin uninitialized
         self.start_time = None
@@ -88,10 +92,10 @@ class MeasurementParams(object):
         ## Instrument parameters (measurement 'inputs')
         ## Note that the arg default is None to prevent mutation of the default
         ## empty dict (https://stackoverflow.com/questions/1132941/least-astonishment-and-the-mutable-default-argument)
-        if params is None:
-            self.params = {}
+        if setvals is None:
+            self.setvals = {}
         else:
-            self.params = params
+            self.setvals = setvals
 
         ## TODO add more descriptive/optional parameters
         ## Should these be allowed to be user-defined?
