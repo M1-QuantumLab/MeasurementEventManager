@@ -19,11 +19,11 @@ from measurement_event_manager import Protocols
 
 GUIDE_PROTOCOL = "MEM-GR/0.1"
 GUIDE_TIMEOUT = 2500 # in ms
-GUIDE_ENDPOINT = 'tcp://*:5555'
+GUIDE_ENDPOINT = 'tcp://*:9010'
 
 MEAS_PROTOCOL = 'MEM-MS/0.1'
-MEAS_ENDPOINT = 'tcp://*:5556'
-MEAS_SPAWN_ENDPOINT = 'tcp://localhost:5556'
+MEAS_ENDPOINT = 'tcp://*:9011'
+MEAS_SPAWN_ENDPOINT = 'tcp://localhost:9011'
 
 
 ###############################################################################
