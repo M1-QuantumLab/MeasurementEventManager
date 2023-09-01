@@ -131,17 +131,23 @@ class MeasurementController(object):
         response = self.meas_socket.recv_multipart()
         
         ## Run the actual measurement
-        self.logger.debug('Starting measurement wrapper...')
-        
-        measurement_wrapper(self.measurement_params, self.logger)
+        self.logger.debug('Starting measurement...')
 
-        self.logger.debug('Measurement wrapper start completed.')
+        ## Launch the measurement function
+        self.measurement_params.set_start_time()
+        measurement_wrapper(self.measurement_params, self.logger)
+        self.measurement_params.set_end_time()
+        ## TODO add the measurement metadata that we want to transmit to the
+        ## events listener (output file names etc.) to the MeasurementParams
+        ## object
+
+        self.logger.debug('Measurement completed.')
 
         ## Send measurement completion confirmation
-        self.meas_socket.send_multipart([MEAS_PROTOCOL.encode(), b'END'])
-        ## TODO add the measurement metadata that we want to transmit to the
-        ## events listener (output file names etc.) in the end confirmation 
-        ## message
+        self.meas_socket.send_multipart([
+                                MEAS_PROTOCOL.encode(),
+                                b'END',
+                                self.measurement_params.to_json().encode()])
         ## Receive acknowledgement
         response = self.meas_socket.recv_multipart()
 

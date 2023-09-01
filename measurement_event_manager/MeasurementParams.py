@@ -47,9 +47,9 @@ def _mp_from_json(json_dict):
         start_time = mp_dict.pop('start_time', None)
         if start_time is not None:
             start_time = datetime.datetime.strptime(start_time, ISO_STRPTIME)
-        stop_time = mp_dict.pop('stop_time', None)
-        if stop_time is not None:
-            stop_time = datetime.datetime.strptime(stop_time, ISO_STRPTIME)
+        end_time = mp_dict.pop('end_time', None)
+        if end_time is not None:
+            end_time = datetime.datetime.strptime(end_time, ISO_STRPTIME)
         ## Create the object
         mp_obj = MeasurementParams(**mp_dict)
         ## Set the start and stop times
@@ -58,8 +58,8 @@ def _mp_from_json(json_dict):
         ## There is probably a better way of doing this...
         if start_time is not None:
             mp_obj.set_start_time(start_time)
-        if stop_time is not None:
-            mp_obj.set_stop_time(stop_time)
+        if end_time is not None:
+            mp_obj.set_end_time(end_time)
         ## Return the final object with updated special params
         return mp_obj
     ## Handle any individual objects that require special parsing
@@ -92,7 +92,7 @@ class MeasurementParams(object):
 
         ## Start and end datetime markers - begin uninitialized
         self.start_time = None
-        self.stop_time = None
+        self.end_time = None
 
         ## Instrument parameters (measurement 'inputs')
         ## Note that the arg default is None to prevent mutation of the default
@@ -148,10 +148,10 @@ class MeasurementParams(object):
             self.start_time = time
 
 
-    def set_stop_time(self, time=None):
+    def set_end_time(self, time=None):
         '''Indicate that the measurement has stopped or completed
         '''
         if time is None:
-            self.stop_time = datetime.datetime.now()
+            self.end_time = datetime.datetime.now()
         else:
-            self.stop_time = time
+            self.end_time = time
