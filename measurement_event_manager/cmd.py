@@ -6,6 +6,16 @@ import measurement_event_manager.util.logger as mem_logging
 
 
 ###############################################################################
+## Default values
+###############################################################################
+
+
+DEF_PROTOCOL = 'tcp'
+DEF_GUIDE_PORT = '9010'
+DEF_MEAS_PORT = '9011'
+
+
+###############################################################################
 ## MeasurementEventManager server
 ###############################################################################
 
@@ -13,6 +23,22 @@ import measurement_event_manager.util.logger as mem_logging
 def mem_server():
     '''Start up a MeasurementEventManager instance
     '''
+
+    ## Parse command-line arguments
+    ###############################
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--guide-port',
+                        help='Port used for Guide communication',
+                        action='store',
+                        default=None)
+    parser.add_argument('--meas-port',
+                        help='Port used for Measurement Controller '
+                             'communcation',
+                        action='store',
+                        default=None)
+    cmd_args = parser.parse_args()
+
 
     ## Logging
     ##########
@@ -24,14 +50,31 @@ def mem_server():
                             )
     logger.debug('Logging initialized.')
 
+
     ## MeasurementEventManager
     ##########################
 
     ## Instantiate object
     mem_server = mem.MeasurementEventManager.MeasurementEventManager(logger)
+    
+    ## Construct socket addresses
+    if cmd_args.guide_port is not None:
+        guide_port = str(cmd_args.guide_port)
+    else:
+        guide_port = DEF_GUIDE_PORT
+    guide_reply_endpoint = '{}://*:{}'.format(DEF_PROTOCOL, guide_port)
+    if cmd_args.meas_port is not None:
+        meas_port = str(cmd_args.meas_port)
+    else:
+        meas_port = DEF_MEAS_PORT
+    meas_reply_endpoint = '{}://*:{}'.format(DEF_PROTOCOL, meas_port)
+    meas_request_endpoint = '{}://localhost:{}'.format(DEF_PROTOCOL, meas_port)
+
     ## Set up connections
-    ## TODO get connection parameters (addresses etc.) from user-defined config
-    mem_server.connect_sockets()
+    mem_server.connect_sockets(guide_reply=guide_reply_endpoint,
+                               meas_reply=meas_reply_endpoint,
+                               meas_request=meas_request_endpoint,
+                               )
 
     ## Main event loop
     mem_server.run_event_loop()

@@ -19,11 +19,7 @@ from measurement_event_manager import Protocols
 
 GUIDE_PROTOCOL = "MEM-GR/0.1"
 GUIDE_TIMEOUT = 2500 # in ms
-GUIDE_ENDPOINT = 'tcp://*:9010'
-
 MEAS_PROTOCOL = 'MEM-MS/0.1'
-MEAS_ENDPOINT = 'tcp://*:9011'
-MEAS_SPAWN_ENDPOINT = 'tcp://localhost:9011'
 
 
 ###############################################################################
@@ -47,8 +43,15 @@ class MeasurementEventManager(object):
         ## Active measurement
         self._current_measurement = None
 
+        ## Declare variables for later
+        self._meas_request_endpoint = None
 
-    def connect_sockets(self):
+
+    def connect_sockets(self,
+        guide_reply,
+        meas_reply,
+        meas_request,
+        ):
         '''docstring.
         '''
 
@@ -57,18 +60,24 @@ class MeasurementEventManager(object):
 
         ## Set up guide response socket
         self.guide_socket = self.context.socket(zmq.REP)
-        self.guide_socket.bind(GUIDE_ENDPOINT)
-        self.logger.debug('Guide response socket initialized.')
+        self.guide_socket.bind(guide_reply)
+        self.logger.debug('Guide response socket bound to'
+                          ' {}'.format(guide_reply))
 
         ## Set up measurement controller response socket
         self.meas_socket = self.context.socket(zmq.REP)
-        self.meas_socket.bind(MEAS_ENDPOINT)
-        self.logger.debug('Measurement controller response socket initialized.')
+        self.meas_socket.bind(meas_reply)
+        self.logger.debug('Controller response socket bound to'
+                          ' {}'.format(meas_reply))
 
         ## Initialize poller subscribed to all response sockets
         self.poller = zmq.Poller()
         self.poller.register(self.guide_socket, zmq.POLLIN)
         self.poller.register(self.meas_socket, zmq.POLLIN)
+
+        ## Store measurement request socket endpoint for when
+        ## measurement process is spawned
+        self._meas_request_endpoint = meas_request
 
 
     ## Main event loop
@@ -160,7 +169,7 @@ class MeasurementEventManager(object):
         self.logger.info('Launching measurement...')
         ## TODO we need to detach on Windows using subprocess.DETACHED_PROCESS
         proc = subprocess.Popen(['nohup', 'mem_launch_measurement',
-                                 MEAS_SPAWN_ENDPOINT],
+                                 self._meas_request_endpoint],
                                 preexec_fn=os.setpgrp,
                                 )
         return True
