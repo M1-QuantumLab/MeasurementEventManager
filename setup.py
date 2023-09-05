@@ -13,8 +13,10 @@ setuptools.setup(
     python_requires='>=2.7',
     packages=["measurement_event_manager"],
     install_requires=_requires,
-    scripts=[
-            "bin/run_mem",
-            "bin/launch_measurement",
+    entry_points={
+        'console_scripts': [
+            'mem_server = measurement_event_manager.cmd:mem_server',
+            'mem_launch_measurement = measurement_event_manager.cmd:mem_launch_measurement',
             ],
+        },
 )

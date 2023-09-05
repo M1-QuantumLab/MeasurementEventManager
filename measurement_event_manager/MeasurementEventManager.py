@@ -159,7 +159,7 @@ class MeasurementEventManager(object):
         ## Launch measurement with a MeasurementController instance
         self.logger.info('Launching measurement...')
         ## TODO we need to detach on Windows using subprocess.DETACHED_PROCESS
-        proc = subprocess.Popen(['nohup', 'launch_measurement',
+        proc = subprocess.Popen(['nohup', 'mem_launch_measurement',
                                  MEAS_SPAWN_ENDPOINT],
                                 preexec_fn=os.setpgrp,
                                 )
