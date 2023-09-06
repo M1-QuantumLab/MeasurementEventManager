@@ -45,6 +45,7 @@ class MeasurementEventManager(object):
 
         ## Declare variables for later
         self._meas_request_endpoint = None
+        self._fetch_counter = -1
 
 
     def connect_sockets(self,
@@ -101,8 +102,21 @@ class MeasurementEventManager(object):
             ## If there is no measurement running, we should start one
             if self._current_measurement:
                 self.logger.debug('A measurement is currently in progress.')
+            elif self._fetch_counter == 0:
+                self.logger.info('Fetch counter is at 0;'
+                                 ' skipping fetch and waiting for increase.')
             else:
-                self.logger.info('No measurement is running; fetching from queue.')
+                self.logger.info('No measurement is running;'
+                                 ' fetching from queue.')
+                ## In principle this could just always happen, as any negative
+                ## value would count as infinite, but in practice we might as
+                ## well be a bit more specific to avoid weird behaviour
+                if self._fetch_counter >= 0:
+                    self._fetch_counter -= 1
+                    self.logger.info('Fetch counter decremented to {}'.format(
+                                                        self._fetch_counter))
+                else:
+                    self.logger.debug('Counter set for infinite fetch.')
                 self.init_next_measurement()
 
 
@@ -119,11 +133,13 @@ class MeasurementEventManager(object):
             
             if poll_all.get(self.guide_socket, None) == zmq.POLLIN:
                 self.logger.debug('Incoming message on guide socket.')
-                Protocols.process_request(socket=self.guide_socket,
-                                          socket_type='guide',
-                                          logger=self.logger,
-                                          queue=self.queue,
-                                          )
+                Protocols.process_request(
+                                socket=self.guide_socket,
+                                socket_type='guide',
+                                logger=self.logger,
+                                queue=self.queue,
+                                fetch_callback=self.fetch_mode,
+                                )
             
             elif poll_all.get(self.meas_socket, None) == zmq.POLLIN:
                 self.logger.debug('Incoming message on measurement socket.')
@@ -173,4 +189,14 @@ class MeasurementEventManager(object):
                                 preexec_fn=os.setpgrp,
                                 )
         return True
+
+
+    def fetch_mode(self, set_counter=None):
+        '''Set the number of measurements to be fetched before pausing
+        '''
+        if set_counter is not None:
+            self._fetch_counter = int(set_counter)
+        ## If set_counter is None, treat it as a query and return the value
+        ## without modification
+        return self._fetch_counter
 

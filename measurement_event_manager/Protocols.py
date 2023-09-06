@@ -11,7 +11,10 @@ from measurement_event_manager import MeasurementParams
 ###############################################################################
 
 
-def gr_parser(logger, request_content, queue, *args):
+def gr_parser(logger, request_content,
+              queue,
+              fetch_callback=lambda *args: None,
+              *args):
     '''Parse MEM-GR/0.1 requests
     '''
 
@@ -71,7 +74,15 @@ def gr_parser(logger, request_content, queue, *args):
             response_header = 'ERR'
             response_body.append('Invalid index')
 
-
+    elif header == 'FCH':
+        logger.info('FCH request received.')
+        if content:
+            counter = content[0]
+        else:
+            counter = None
+        ## Call the fetch callback function
+        response_header = 'FCH'
+        response_body.append(str(fetch_callback(counter)))
 
     ## TODO add more possible requests
 
@@ -83,7 +94,7 @@ def gr_parser(logger, request_content, queue, *args):
     ## Return the header and content as a single list for multipart msg
     response_content = [response_header] + response_body
     ## Make sure it's encoded into binary
-    return [xx.encode() for xx in response_content]
+    return [xx.encode() for xx in response_content if xx is not None]
 
 
 def ms_parser(logger, request_content,
