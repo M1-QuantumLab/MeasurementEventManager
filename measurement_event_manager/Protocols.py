@@ -60,7 +60,7 @@ def gr_parser(logger, request_content,
         ## transaction (to prevent indices getting confusing)
         try:
             index = int(content[0])
-        except IndexError or ValueError:
+        except (IndexError, ValueError):
             ## IndexError means the content is empty
             ## ValueError means the content cannot be coerced to an int
             status = queue.remove()
