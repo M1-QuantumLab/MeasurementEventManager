@@ -51,7 +51,7 @@ def gr_parser(logger, request_content,
         ## Construct response
         response_header = 'QUE'
         for meas_item in queue_list:
-            response_body.append(str(meas_item))
+            response_body.append(meas_item.to_json())
 
     elif header == 'RMV':
         logger.info('RMV request received.')
