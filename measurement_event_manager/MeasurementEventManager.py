@@ -138,7 +138,7 @@ class MeasurementEventManager(object):
                                 socket_type='guide',
                                 logger=self.logger,
                                 queue=self.queue,
-                                fetch_callback=self.fetch_mode,
+                                fetch_callback=self.fetch_counter,
                                 )
             
             elif poll_all.get(self.meas_socket, None) == zmq.POLLIN:
@@ -191,7 +191,7 @@ class MeasurementEventManager(object):
         return True
 
 
-    def fetch_mode(self, set_counter=None):
+    def fetch_counter(self, set_counter=None):
         '''Set the number of measurements to be fetched before pausing
         '''
         if set_counter is not None:
