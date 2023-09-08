@@ -36,6 +36,13 @@ class MeasurementQueue(object):
         self.queue = collections.deque()
 
 
+    ## Special methods
+    ##################
+
+    def __len__(self):
+        return len(self.queue)
+
+
     ## Queue management
     ###################
 

@@ -53,6 +53,11 @@ def gr_parser(logger, request_content,
         for meas_item in queue_list:
             response_body.append(meas_item.to_json())
 
+    elif header == 'LEN':
+        logger.info('LEN request received.')
+        response_header = 'LEN'
+        response_body.append(str(len(queue)))
+
     elif header == 'RMV':
         logger.info('RMV request received.')
         ## Remove measurement from queue
