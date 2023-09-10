@@ -83,27 +83,36 @@ def from_json(json_object):
 class MeasurementParams(object):
 
     def __init__(self,
-                 measurement_type="default",
+                 submitter,
+                 metadata=None,
                  setvals=None,
                  ):
 
-        ## Measurement type descriptor
-        self.measurement_type = measurement_type
+        ## Measurement submitter identification
+        ## This may be extended with auth at some point
+        self.submitter = submitter
 
         ## Start and end datetime markers - begin uninitialized
         self.start_time = None
         self.end_time = None
 
-        ## Instrument parameters (measurement 'inputs')
+        ## User-defined collections
         ## Note that the arg default is None to prevent mutation of the default
         ## empty dict (https://stackoverflow.com/questions/1132941/least-astonishment-and-the-mutable-default-argument)
+
+        ## Metadata (administrative or informational data)
+        ## These are values which will not be parsed by pyHegel or instrument
+        ## drivers
+        if metadata is None:
+            self.metadata = {}
+        else:
+            self.metadata = metadata
+
+        ## Instrument parameters (measurement 'inputs')
         if setvals is None:
             self.setvals = {}
         else:
             self.setvals = setvals
-
-        ## TODO add more descriptive/optional parameters
-        ## Should these be allowed to be user-defined?
 
 
     ## JSON serialization
