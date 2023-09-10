@@ -67,19 +67,28 @@ class MeasurementQueue(object):
         return list(copy.deepcopy(self.queue))
 
 
-    def remove(self, index=-1):
+    def remove(self, index_list=None):
         '''Remove the measurement at the specified index
         '''
-        ## TODO allow this to operate on a range of indices
-        try:
+        ## First, ensure there are items in the queue to delete
+        if len(self.queue) == 0:
+            raise QueueEmptyError
+        ## Validity checks on indices - we only parse valid positive values
+        ## All funky indexing needs to happen on the client side!
+        valid_indices = [ii for ii in index_list if ii < len(self.queue)]
+        ## Ensure indices are all modulo length so the sorting will be correct
+        ## Remove dupes with a set, otherwise they will end up messing up the
+        ## in-place deletion operation
+        mod_set = set([ii % len(self.queue) for ii in valid_indices])
+        ## Sort indices backwards, so we delete the highest-indexed values
+        ## first so the lowest-indexed values don't have to move
+        sorted_indices = sorted(list(mod_set), reverse=True)
+        ## Iterate over indices and delete
+        deleted_indices = []
+        for index in sorted_indices:
             del self.queue[index]
-        except IndexError:
-            ## Index is out of range
-            ## Can be because the index is invalid or the queue is empty
-            ## TODO differentiate between these two cases properly
-            return False
-        else:
-            return True
+            deleted_indices.append(index)
+        return deleted_indices
 
 
     def pop_next(self):

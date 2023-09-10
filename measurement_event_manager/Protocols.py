@@ -2,8 +2,8 @@
 Parsing and (un)packing messages for the various MEM protocols.
 '''
 
-
 from measurement_event_manager import MeasurementParams
+from measurement_event_manager.MeasurementQueue import QueueEmptyError
 
 
 ###############################################################################
@@ -46,10 +46,8 @@ def gr_parser(logger, request_content,
 
     elif header == 'QUE':
         logger.info('QUE request received.')
-        ## Fetch queue information from MeasurementQueue
-        queue_list = queue.info()
-        ## Construct response
         response_header = 'QUE'
+        queue_list = queue.info()
         for meas_item in queue_list:
             response_body.append(meas_item.to_json())
 
@@ -60,24 +58,28 @@ def gr_parser(logger, request_content,
 
     elif header == 'RMV':
         logger.info('RMV request received.')
-        ## Remove measurement from queue
-        ## TODO allow this to operate on a range of indices in a single
-        ## transaction (to prevent indices getting confusing)
+        index_list = []
+        ## Convert received indices to int
+        if content:
+            for index in content:
+                try:
+                    index_int = int(index)
+                except ValueError:
+                    self.logger.error('{} could not be converted to an int'\
+                                      .format(index))
+                    continue
+                else:
+                    index_list.append(index_int)
+        ## Remove values from queue
         try:
-            index = int(content[0])
-        except (IndexError, ValueError):
-            ## IndexError means the content is empty
-            ## ValueError means the content cannot be coerced to an int
-            status = queue.remove()
+            removed_indices = queue.remove(index_list)
+        except QueueEmptyError:
+            logger.error("Attempting to remove items from empty queue")
+            response_header = "ERR"
+            response_body.append("Queue is empty; cannot remove items.")
         else:
-            status = queue.remove(index)
-        ## Construct response
-        if status:
-            response_header = 'RMV'
-        else:
-            logger.warning('RMV failed; invalid index.')
-            response_header = 'ERR'
-            response_body.append('Invalid index')
+            response_header = "RMV"
+            response_body.extend(str(ii) for ii in removed_indices)
 
     elif header == 'FCH':
         logger.info('FCH request received.')
