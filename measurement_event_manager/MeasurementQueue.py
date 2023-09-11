@@ -6,20 +6,7 @@ MeasurementEventManager.
 import collections
 import copy
 
-
-###############################################################################
-## Errors and warnings
-###############################################################################
-
-
-## I don't think we want to subclass QueueEmptyError from IndexError directly,
-## as it seems logical to distinguish when the queue is empty (which is not in
-## of itself a bad occurrence) from when we have supplied an invalid index for
-## queue operations, which indicates a bona-fide user error.
-## So instead, we will subclass it from LookupError, which is the parent of
-## IndexError.
-class QueueEmptyError(LookupError):
-    pass
+from measurement_event_manager.util.errors import QueueEmptyError
 
 
 ###############################################################################
