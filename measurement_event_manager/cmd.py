@@ -13,6 +13,7 @@ import measurement_event_manager.util.log as mem_logging
 DEF_PROTOCOL = 'tcp'
 DEF_GUIDE_PORT = '9010'
 DEF_MEAS_PORT = '9011'
+DEF_PUB_PORT = '9027'
 
 
 ###############################################################################
@@ -35,6 +36,11 @@ def mem_server():
     parser.add_argument('--meas-port',
                         help='Port used for Measurement Controller '
                              'communcation',
+                        action='store',
+                        default=None)
+    parser.add_argument('--pub-port',
+                        help='Port used to publish information about '
+                             'completed measurements to Listeners',
                         action='store',
                         default=None)
     cmd_args = parser.parse_args()
@@ -69,12 +75,20 @@ def mem_server():
         meas_port = DEF_MEAS_PORT
     meas_reply_endpoint = '{}://*:{}'.format(DEF_PROTOCOL, meas_port)
     meas_request_endpoint = '{}://localhost:{}'.format(DEF_PROTOCOL, meas_port)
+    if cmd_args.pub_port is not None:
+        pub_port = str(cmd_args.pub_port)
+    else:
+        pub_port = DEF_PUB_PORT
+    listener_pub_endpoint = '{}://*:{}'.format(DEF_PROTOCOL, pub_port)
+
 
     ## Set up connections
-    mem_server.connect_sockets(guide_reply=guide_reply_endpoint,
-                               meas_reply=meas_reply_endpoint,
-                               meas_request=meas_request_endpoint,
-                               )
+    mem_server.connect_sockets(
+                    guide_reply=guide_reply_endpoint,
+                    meas_reply=meas_reply_endpoint,
+                    meas_request=meas_request_endpoint,
+                    listener_pub=listener_pub_endpoint,
+                    )
 
     ## Main event loop
     mem_server.run_event_loop()

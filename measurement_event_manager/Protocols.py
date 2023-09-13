@@ -7,7 +7,7 @@ from measurement_event_manager.MeasurementQueue import QueueEmptyError
 
 
 ###############################################################################
-## Protocol definitions
+## Incoming/parser protocol definitions
 ###############################################################################
 
 
@@ -117,6 +117,7 @@ def ms_parser(logger, request_content,
 
     ## Separate out the request header
     request_header = request_content[0]
+    request_body = request_content[1:]
 
     if request_header == 'REQ':
         response_header = 'REQ'
@@ -128,12 +129,36 @@ def ms_parser(logger, request_content,
 
     elif request_header == 'END':
         response_header = 'ACK'
-        response_body.append(end_callback())
+        response_body.append(end_callback(request_body))
 
     ## Return the header and content as a single list for multipart msg
     response_content = [response_header] + response_body
     ## Make sure it's encoded into binary
     return [xx.encode() for xx in response_content if xx is not None]
+
+
+###############################################################################
+## Outgoing/publisher protocol definitions
+###############################################################################
+
+
+def ls_publisher(logger, pub_content):
+    '''Prepare MEM-LS/0.1 pub broadcasts
+    '''
+
+    ## Placeholder list so we can append to it
+    pub_body = []
+
+    ## Measurement successfully finished
+    pub_header = "FIN"
+    ## Pass the content directly to the message body
+    ## This should be the measurement data
+    pub_body.append(pub_content)
+
+    ## Return the head and body as a single list for a multipart msg
+    pub_content = [pub_header] + pub_body
+    ## Make sure it's encoded into binary
+    return [xx.encode() for xx in pub_content if xx is not None]
 
 
 ###############################################################################
@@ -152,6 +177,11 @@ SOCKET_PROTOCOLS = {
     ],
 }
 
+OUTGOING_PROTOCOLS = {
+    'listener': [
+        'MEM-LS/0.1',
+    ],
+}
 
 ## Parsers for each protocol
 PROTOCOL_PARSERS = {
@@ -159,9 +189,13 @@ PROTOCOL_PARSERS = {
     'MEM-MS/0.1': ms_parser,
 }
 
+OUTGOING_PUBLISHERS = {
+    'MEM-LS/0.1': ls_publisher,
+}
+
 
 ###############################################################################
-## High-level request processing function
+## High-level request processing functions
 ###############################################################################
 
 
@@ -201,4 +235,28 @@ def process_request(socket, socket_type, logger, **kwargs):
     response = [req_protocol.encode()] + response_content
     ## Send the response
     socket.send_multipart(response)
+
+
+def publish_data(socket, socket_type, protocol, content, logger, **kwargs):
+    '''Generic processor for outgoing pub-style broadcasting
+    '''
+    ## If this is a valid protocol for the given socket type, pass it to the
+    ## appropriate publisher
+    if protocol in OUTGOING_PROTOCOLS[socket_type]:
+        ## Fetch the right publisher
+        publisher = OUTGOING_PUBLISHERS[protocol]
+        ## Get the content from the publisher
+        pub_content = publisher(logger, content, **kwargs)
+        ## Prepare the pub message
+        pub_message = [protocol.encode()] + pub_content
+        logger.debug('Sending request:')
+        logger.debug(pub_message)
+        ## Send the broadcast
+        socket.send_multipart(pub_message)
+
+    else:
+        ## Not a valid protocol for the socket type!
+        logger.error('Invalid protocol {} for socket type {}'.format(
+                                                        protocol, socket_type))
+        ## We can't really send any messages, so do nothing
 

@@ -52,6 +52,7 @@ class MeasurementEventManager(object):
         guide_reply,
         meas_reply,
         meas_request,
+        listener_pub,
         ):
         '''docstring.
         '''
@@ -70,6 +71,12 @@ class MeasurementEventManager(object):
         self.meas_socket.bind(meas_reply)
         self.logger.debug('Controller response socket bound to'
                           ' {}'.format(meas_reply))
+
+        ## Set up listener publishing socket
+        self.pub_socket = self.context.socket(zmq.PUB)
+        self.pub_socket.bind(listener_pub)
+        self.logger.debug('Listener pub socket bound to'
+                          ' {}'.format(listener_pub))
 
         ## Initialize poller subscribed to all response sockets
         self.poller = zmq.Poller()
@@ -148,7 +155,7 @@ class MeasurementEventManager(object):
                                 socket_type='measurement',
                                 logger=self.logger,
                                 req_callback=self.get_current_measurement_json,
-                                end_callback=self.clear_current_measurement,
+                                end_callback=self.measurement_finished,
                                 )
 
             ## End of main event loop
@@ -167,6 +174,7 @@ class MeasurementEventManager(object):
 
 
     def clear_current_measurement(self):
+        self.logger.debug('Clearing current measurement')
         self._current_measurement = None
 
 
@@ -189,6 +197,31 @@ class MeasurementEventManager(object):
                                 preexec_fn=os.setpgrp,
                                 )
         return True
+
+
+    def measurement_finished(self, received_message):
+        '''Cleanup and publishing of a finished measurement
+
+        Takes in serialized measurement data and pipes it to the publishing
+        socket.
+        '''
+        self.logger.info('Measurement completed; broadcasting to listeners...')
+        ## Clear the current measurement attribute
+        self.clear_current_measurement()
+        ## Publish the serialized measurement data
+        measurement_json = received_message[0]
+        self.publish_measurement(measurement_json)
+
+
+    def publish_measurement(self, measurement_json):
+        '''Publish serialized measurement data to the listener pub socket
+        '''
+        Protocols.publish_data(socket=self.pub_socket,
+                               socket_type='listener',
+                               protocol='MEM-LS/0.1',
+                               content=measurement_json,
+                               logger=self.logger,
+                               )
 
 
     def fetch_counter(self, set_counter=None):
