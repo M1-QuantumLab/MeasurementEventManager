@@ -65,7 +65,7 @@ def gr_parser(logger, request_content,
                 try:
                     index_int = int(index)
                 except ValueError:
-                    self.logger.error('{} could not be converted to an int'\
+                    logger.error('{} could not be converted to an int'\
                                       .format(index))
                     continue
                 else:
