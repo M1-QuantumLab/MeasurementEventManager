@@ -1,14 +1,49 @@
 '''
-Basic logger using the logging stdlib, configurable to both file and/or console
-logging.
-
-From https://gist.github.com/SamWolski/61eac3f62f68b8137c126fb32cd4ea3f
+Basic logging config and utilities
 '''
 
 from datetime import datetime
 import logging
 import os
 import sys
+
+
+###############################################################################
+## Logging config
+###############################################################################
+
+
+## Log level string/value parsing
+#################################
+
+
+STR2LOG = {
+	"debug": logging.DEBUG,
+	"info": logging.INFO,
+	"warning": logging.WARNING,
+	"error": logging.ERROR,
+}
+
+
+def parse_log_level(level_str_or_int):
+	"""Parse a logging level, either as an int or as a string corresponding
+	to a log level from the logging stdlib
+	"""
+	## Check if this is one of the predefined levels
+	if level_str_or_int in STR2LOG:
+		return STR2LOG[level_str_or_int]
+	
+	## Otherwise, try and parse it as an int
+	try:
+		level = int(level_str_or_int)
+	except ValueError as e:
+		raise ValueError(f"Cannot parse {level_str_or_int} as a logging"
+						 " level") from e
+
+
+## Logging config
+#################
+
 
 def quick_config(logger,
                  console_log_level=logging.INFO, file_log_level=logging.DEBUG,
@@ -19,9 +54,13 @@ def quick_config(logger,
                  file_datefmt='%y-%m-%d %H:%M:%S',
                  file_log_dir='logs',
     ):
-    """Rapidly configure a logger with a console and/or file handler.
-    """
-    
+    '''Rapidly configure a logger with a console and/or file handler.
+
+    Configurable to both file and/or console logging.
+
+    From https://gist.github.com/SamWolski/61eac3f62f68b8137c126fb32cd4ea3f
+    '''
+
     ## Add console handler
     if console_log_level is not None:
         console_handler = logging.StreamHandler(sys.stdout)

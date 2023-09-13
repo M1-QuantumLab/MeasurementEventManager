@@ -9,7 +9,7 @@ import time
 import zmq
 
 from measurement_event_manager import MeasurementParams
-import measurement_event_manager.util.logger as mem_logging
+import measurement_event_manager.util.logging as mem_logging
 
 
 ###############################################################################
