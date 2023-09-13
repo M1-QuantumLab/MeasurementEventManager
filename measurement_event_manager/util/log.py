@@ -37,8 +37,7 @@ def parse_log_level(level_str_or_int):
 	try:
 		level = int(level_str_or_int)
 	except ValueError as e:
-		raise ValueError(f"Cannot parse {level_str_or_int} as a logging"
-						 " level") from e
+		raise ValueError("Cannot parse {} as a logging level".format(level_str_or_int))
 
 
 ## Logging config

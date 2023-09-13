@@ -2,7 +2,7 @@ import argparse
 import logging
 
 import measurement_event_manager as mem
-import measurement_event_manager.util.logging as mem_logging
+import measurement_event_manager.util.log as mem_logging
 
 
 ###############################################################################
