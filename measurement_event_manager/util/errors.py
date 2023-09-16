@@ -5,17 +5,21 @@ ecosystem.
 
 
 ###############################################################################
-## Generic ecosystem errors
+## Network errors
 ###############################################################################
 
 
 ## Python has some built-in network connectivity errors, but those are all
 ## subclasses of OSError and are all intended for system-level network issues.
-## So we definitely don't want to be subclassing those! 
-## If we start needing more of our own exceptions, we can probably do something
-## like a generic NetworkError (iheriting from RuntimeError) which then
-## subclasses to all the specific ones we would want.
-class ConnectionTimeoutError(RuntimeError):
+## So we definitely don't want to be subclassing those!
+
+class NetworkError(RuntimeError):
+    pass
+
+class SocketUnavailableError(NetworkError):
+    pass
+
+class ConnectionTimeoutError(NetworkError):
     pass
 
 
