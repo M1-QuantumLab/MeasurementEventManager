@@ -14,7 +14,7 @@ from measurement_event_manager.util.errors import QueueEmptyError
 ###############################################################################
 
 
-class MeasurementQueue(object):
+class Queue(object):
 
     ## Init and setup
     #################

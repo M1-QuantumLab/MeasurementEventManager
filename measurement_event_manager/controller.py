@@ -8,7 +8,7 @@ import time
 
 import zmq
 
-from measurement_event_manager import MeasurementParams
+from measurement_event_manager import measurement_params
 import measurement_event_manager.util.log as mem_logging
 
 
@@ -25,7 +25,7 @@ MEAS_PROTOCOL = 'MEM-MS/0.1'
 ###############################################################################
 
 
-def measurement_wrapper(measurement_params, logger):
+def measurement_wrapper(params, logger):
     '''Wrapper for the actual measurement function
     '''
     for ii in range(10):
@@ -39,7 +39,7 @@ def measurement_wrapper(measurement_params, logger):
 ###############################################################################
 
 
-class MeasurementController(object):
+class Controller(object):
     '''Wrapper to handle measurement control/administration. 
     
     Communicates status with main MeasurementEventManager process through ZMQ.
@@ -50,7 +50,7 @@ class MeasurementController(object):
         self.measurement_params = None
         
         ## Initialize logging
-        logger = logging.getLogger('MeasurementController')
+        logger = logging.getLogger('MEM-Controller')
         ## TODO have some information in the log file name about the
         ## measurement itself, so we can quickly identify it
         self.logger = mem_logging.quick_config(logger,
@@ -108,7 +108,7 @@ class MeasurementController(object):
         ## Make sure the header is right; we can build in some error handling
         ## at some point
         if reply_header == 'REQ':
-            self.measurement_params = MeasurementParams.from_json(
+            self.measurement_params = measurement_params.from_json(
                                                                 reply_content)
             self.logger.info('Measurement params processed.')
 

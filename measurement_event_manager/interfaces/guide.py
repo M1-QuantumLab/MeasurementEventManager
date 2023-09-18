@@ -1,4 +1,4 @@
-from measurement_event_manager import MeasurementParams
+from measurement_event_manager import measurement_params
 from measurement_event_manager.interfaces.generic import (
     RequestInterface,
     ReplyInterface,
@@ -52,7 +52,7 @@ class GuideReplyInterface(ReplyInterface):
             self.logger.info('ADD request received.')
             response_header = 'ADD'
             ## Convert JSON specs to MeasurementParams objects
-            mp_list = [MeasurementParams.from_json(mm) for mm in body]
+            mp_list = [measurement_params.from_json(mm) for mm in body]
             ## Add to the measurement queue
             added_indices = self._server.add_to_queue(mp_list)
             ## Add the index to the response body

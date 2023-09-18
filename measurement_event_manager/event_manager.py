@@ -10,7 +10,8 @@ except ImportError:
 import os
 import subprocess
 
-from measurement_event_manager import MeasurementQueue
+from measurement_event_manager import queue
+from measurement_event_manager.util.errors import QueueEmptyError
 
 
 ###############################################################################
@@ -28,7 +29,7 @@ MEAS_PROTOCOL = 'MEM-MS/0.1'
 ###############################################################################
 
 
-class MeasurementEventManager(object):
+class EventManager(object):
     
 
     ## Setup and initialization
@@ -39,7 +40,7 @@ class MeasurementEventManager(object):
         ## Assign logger
         self.logger = logger
         ## Create queue for measurements
-        self.queue = MeasurementQueue.MeasurementQueue()
+        self.queue = queue.Queue()
 
         ## Active measurement
         self._current_measurement = None
@@ -79,7 +80,7 @@ class MeasurementEventManager(object):
         self.logger.debug('Attempting to fetch measurement from queue...')
         try:
             next_measurement = self.queue.pop_next()
-        except MeasurementQueue.QueueEmptyError:
+        except QueueEmptyError:
             self.logger.warning('Queue is empty; cannot fetch measurement')
             ## Return without incrementing the fetch counter
             return False

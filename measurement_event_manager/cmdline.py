@@ -59,7 +59,7 @@ def mem_server():
     ##########
 
     logger = mem_logging.quick_config(
-                            logging.getLogger('MeasurementEventManager'),
+                            logging.getLogger('MEM-EventManager'),
                             console_log_level=logging.INFO,
                             file_log_level=logging.DEBUG,
                             )
@@ -128,7 +128,7 @@ def mem_server():
 
 
     ## Instantiate EventManager
-    mem_server = mem.MeasurementEventManager.MeasurementEventManager(
+    mem_server = mem.event_manager.EventManager(
                                     logger=logger,
                                     controller_endpoint=ctrl_request_endpoint,
                                     )
@@ -214,7 +214,7 @@ def mem_launch_measurement():
     ########################
 
     ## Initialize the MeasurementController object
-    meas_controller = mem.MeasurementController.MeasurementController(
+    meas_controller = mem.controller.Controller(
                             socket_endpoint=cmd_args.socket_endpoint,
                             )
 
