@@ -5,6 +5,8 @@ from measurement_event_manager.interfaces.generic import (
 )
 from measurement_event_manager.util.errors import (
     QueueEmptyError,
+    ServerError,
+    HeaderError,
 )
 
 
@@ -20,7 +22,98 @@ from measurement_event_manager.util.errors import (
 class GuideRequestInterface(RequestInterface):
 
 
-    pass
+    def add(self, params):
+        '''Send an ADD request with the given MeasurementParams object
+        '''
+        ## Serialize the MeasurementParams object
+        params_json = params.to_json()
+        ## Send request based on header and body
+        reply_dict = self._send_request(header='ADD', body=[params_json])
+        ## Make sure we haven't gotten an error
+        ## TODO this should probably be packaged away somewhere
+        if reply_dict['header'] == 'ADD':
+            return reply_dict['body']
+        elif reply_dict['header'] == 'ERR':
+            raise ServerError(reply_dict['body'])
+        else:
+            raise HeaderError(reply_dict['header'])
+
+
+    def query(self):
+        '''Send a QUE request, returning items in the server queue
+        '''
+        reply_dict = self._send_request(header='QUE')
+        if reply_dict['header'] == 'QUE':
+            queue_json = reply_dict['body']
+            ## Convert to MeasurementParams objects
+            queue_mp = [measurement_params.from_json(mp) for mp in queue_json]
+            return queue_mp
+        elif reply_dict['header'] == 'ERR':
+            raise ServerError(reply_dict['body'])
+        else:
+            raise HeaderError(reply_dict['header'])
+
+
+    def len(self):
+        '''Send a LEN request, returning the length of the server queue
+        '''
+        reply_dict = self._send_request(header='LEN')
+        if reply_dict['header'] == 'LEN':
+            return int(reply_dict['body'][0])
+        elif reply_dict['header'] == 'ERR':
+            raise ServerError(reply_dict['body'])
+        else:
+            raise HeaderError(reply_dict['header'])
+
+
+    def remove(self, index_list):
+        '''Send a RMV request, deleting measurements at the specified indices
+
+        indices must be an iterable of individual indices convertible to str
+        type. Resolving syntactic sugar (eg slices) and ensuring the validity
+        of the passed-in indices is the responsibility of the caller.
+        '''
+        ## Ensure all indices are string type
+        indices_str = [str(ii) for ii in index_list]
+        ## Send request
+        reply_dict = self._send_request(header='RMV', body=indices_str)
+        if reply_dict['header'] == 'RMV':
+            removed_indices_str = reply_dict['body']
+            ## Convert str indices to numeric
+            removed_indices = [int(ii) for ii in removed_indices_str]
+            return removed_indices
+        elif reply_dict['header'] == 'ERR':
+            raise ServerError(reply_dict['body'])
+        else:
+            raise HeaderError(reply_dict['header'])
+
+
+    def get_counter(self):
+        '''Send an empty FCH request to query the fetch counter value'''
+        reply_dict = self._send_request(header='FCH')
+        if reply_dict['header'] == 'FCH':
+            counter = int(reply_dict['body'][0])
+            return counter
+        elif reply_dict['header'] == 'ERR':
+            raise ServerError(reply_dict['body'])
+        else:
+            raise HeaderError(reply_dict['header'])
+
+
+    def set_counter(self, value):
+        '''Send a FCH request, specifying the new fetch counter value
+        '''
+        ## Convert the new value to a str and pack in a list
+        value_msg = [str(value)]
+        ## Send request
+        reply_dict = self._send_request(header='FCH', body=value_msg)
+        if reply_dict['header'] == 'FCH':
+            counter = int(reply_dict['body'][0])
+            return counter
+        elif reply_dict['header'] == 'ERR':
+            raise ServerError(reply_dict['body'])
+        else:
+            raise HeaderError(reply_dict['header'])
 
 
 ## Guide server REP interface

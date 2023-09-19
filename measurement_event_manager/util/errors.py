@@ -24,6 +24,21 @@ class ConnectionTimeoutError(NetworkError):
 
 
 ###############################################################################
+## Protocol and messaging errors
+###############################################################################
+
+
+class ServerError(RuntimeError):
+    pass
+
+class MessagingError(RuntimeError):
+    pass
+
+class HeaderError(MessagingError):
+    pass
+
+
+###############################################################################
 ## Measurement and queue-related errors
 ###############################################################################
 
