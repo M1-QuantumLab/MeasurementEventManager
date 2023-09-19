@@ -36,7 +36,10 @@ class MessageInterface(object):
         return full_message
 
 
-    def _unpack_message(self, message):
+    def _unpack_message(self, message_raw):
+        ## Decode all parts of the message from binary
+        message = [part.decode() for part in message_raw]
+        ## Assign parts to output dict
         message_dict = {
             "protocol": message[0],
             "header": message[1],
