@@ -30,8 +30,10 @@ class MessageInterface(object):
             self.logger = logger
 
 
-    def _pack_message(self, header, body):
-        full_message_raw = [self.protocol_name, header] + body
+    def _pack_message(self, header, body=None):
+        full_message_raw = [self.protocol_name, header]
+        if body:
+            full_message_raw.extend(body)
         full_message = [xx.encode() for xx in full_message_raw]
         return full_message
 
@@ -48,7 +50,7 @@ class MessageInterface(object):
         return message_dict
 
 
-    def _send_message(self, header, body):
+    def _send_message(self, header, body=None):
         ## Make sure we have an open socket
         if (self.socket is None) or (self.socket.closed):
             raise SocketUnavailableError
@@ -68,7 +70,7 @@ class MessageInterface(object):
 
 class RequestInterface(MessageInterface):
 
-    def _send_request(self, header, body):
+    def _send_request(self, header, body=None):
 
         ## Package and send the request
         self._send_message(header, body)
