@@ -90,12 +90,26 @@ class EventManager(object):
         self._decrement_fetch_counter()
         self._current_measurement = next_measurement
         self.logger.info('Launching measurement...')
-        ## TODO we need to identify the OS as detachment is handled differently
-        ## We need to detach on Windows using subprocess.DETACHED_PROCESS
-        proc = subprocess.Popen(['nohup', 'mem_launch_measurement',
-                                 self._meas_request_endpoint],
-                                preexec_fn=os.setpgrp,
-                                )
+
+        ## Identify the OS as creating a detached process is handled differently
+        ## Windows
+        if os.name == 'nt':
+            flags = 0
+            flags |= 0x00000008  # DETACHED_PROCESS
+            flags |= 0x00000200  # CREATE_NEW_PROCESS_GROUP
+            # flags |= 0x08000000  # CREATE_NO_WINDOW
+            proc = subprocess.Popen(['mem_launch_measurement',
+                                     self._meas_request_endpoint],
+                                     close_fds=True,
+                                     creationflags=flags,
+                                     )
+
+        ## Unix-like
+        elif os.name == 'posix':
+            proc = subprocess.Popen(['nohup', 'mem_launch_measurement',
+                                    self._meas_request_endpoint],
+                                    preexec_fn=os.setpgrp,
+                                    )
         return True
 
 
