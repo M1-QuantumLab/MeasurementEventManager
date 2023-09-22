@@ -24,6 +24,11 @@ DEF_GUIDE_PORT = '9010'
 DEF_CTRL_PORT = '9011'
 DEF_PUB_PORT = '9027'
 
+## Max server tick time in ms
+## We pass this in to prevent infinite waits on poller.poll, which would result
+## in being unable to process ctrl-c events on Windows (apparently?)
+POLL_TIMEOUT = 2000
+
 
 ###############################################################################
 ## MeasurementEventManager server
@@ -167,7 +172,7 @@ def mem_server():
 
         ## Get poll on all sockets
         logger.info('Listening for messages on all sockets')
-        poll_all = dict(poller.poll())
+        poll_all = dict(poller.poll(POLL_TIMEOUT))
 
         ## Identify incoming request by socket, and pass to the appropriate
         ## interface along with the MEM server object
