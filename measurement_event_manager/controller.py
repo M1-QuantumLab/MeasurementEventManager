@@ -9,7 +9,10 @@ import time
 import zmq
 
 from measurement_event_manager import measurement_params
-import measurement_event_manager.util.log as mem_logging
+from measurement_event_manager.util import log as mem_logging
+from measurement_event_manager.interfaces.controller import (
+    ControllerRequestInterface,
+)
 
 
 ###############################################################################
@@ -45,111 +48,131 @@ class Controller(object):
     Communicates status with main MeasurementEventManager process through ZMQ.
     '''
 
-    def __init__(self, socket_endpoint):
-        
-        self.measurement_params = None
+    def __init__(self, endpoint,
+        logger=None,
+        zmq_context=None,
+        ):
         
         ## Initialize logging
-        logger = logging.getLogger('MEM-Controller')
-        ## TODO have some information in the log file name about the
-        ## measurement itself, so we can quickly identify it
-        self.logger = mem_logging.quick_config(logger,
-                                               console_log_level=None,
-                                               file_log_level=logging.DEBUG,
-                                               )
-        self.logger.debug('Logging initialized.')
+        if logger is None:
+            logger = logging.getLogger(__name__)
+            ## TODO have some information in the log file name about the
+            ## measurement itself, so we can quickly identify it
+            self.logger = mem_logging.quick_config(
+                                            logger,
+                                            console_log_level=None,
+                                            file_log_level=logging.DEBUG,
+                                            )
+        else:
+            self.logger = logger
 
-        self.socket_endpoint = socket_endpoint
-        ## Set up the ZMQ context
-        self.context = zmq.Context()
-        ## Connect to the endpoint
-        self.connect_socket()
+        ## ZMQ messaging attributes
+        self._endpoint = endpoint
+        if zmq_context is None:
+            self._context = zmq.Context()
+        else:
+            self._context = zmq_context
 
+        ## Connect to the request socket
+        ctrl_request_socket = self._context.socket(zmq.REQ)
+        ctrl_request_socket.connect(self._endpoint)
+        self.logger.debug('Connected to socket at {}'.format(self._endpoint))
+        
+        ## Initialize the interface
+        self._interface = ControllerRequestInterface(
+                                    socket=ctrl_request_socket,
+                                    protocol_name='MEM-MC/0.1',
+                                    logger=self.logger,
+                                    )
+
+        ## At this point, the setup is completed, but because the Controller
+        ## lives in a process that the user doesn't interact with, we're not
+        ## waiting for user input. 
+        ## As such, we just execute all the functions that need to be executed
+        ## in order as part of the __init__ call.
+        ## If the paradigm changes in the future, for example if the Controller
+        ## is kept alive between measurements, then everything below this point
+        ## can be structured for on-demand execution rather that being run
+        ## automatically.
+
+        ## Measurement parameters and execution
+        ## Initialize empty
+        ## The params will be populated when provided by the EventManager
+        self.measurement_params = None
         ## Request measurement params from the parent MEM
-        self.request_measurement_params()
+        self.get_measurement_params()
+        ## Measurement preprocessing and setup (connecting to instruments etc.)
+        self.init_measurement_setup()
         ## Run the measurement using the supplied params
         self.run_measurement()
 
-
-    def connect_socket(self):
-        self.meas_socket = self.context.socket(zmq.REQ)
-        self.meas_socket.connect(self.socket_endpoint)
-        self.logger.debug('Connected to socket at {}'.format(
-                                                        self.socket_endpoint))
+        ## TODO I think at some point we need to explicitly kill the 
+        ## Controller process? Especially if the logger is still open.
 
 
     ## Communications with MEM
     ##########################
 
 
-    def request_measurement_params(self):
-        '''Request measurement parameters from the parent MEM
+    def get_measurement_params(self):
+        '''Request measurement parameters from the parent EventManager
         '''
 
-        ## Send request
-        self.logger.info('Requesting measurement parameters from MEM')
-        self.meas_socket.send_multipart([MEAS_PROTOCOL.encode(),
-                                         b'REQ',])
-        self.logger.debug('Request sent.')
-        
-        ## Receive reply
-        try:
-            reply = self.meas_socket.recv_multipart()
-        except zmq.error.Again:
-            self.logger.error('Could not receive measurement parameters from MEM.')
-            self.meas_socket.close()
-        self.logger.debug('Reply received:')
-        self.logger.debug(reply)
+        ## Request new parameters from the EventManager
+        new_params = self._interface.next()
+        self.logger.info('New measurement params received from EventManager')
+        self.measurement_params = new_params
 
-        ## Parse reply
-        ## The protocol doesn't really give us any information
-        reply_header = reply[1]
-        reply_content = reply[2]
-        ## Make sure the header is right; we can build in some error handling
-        ## at some point
-        if reply_header == 'REQ':
-            self.measurement_params = measurement_params.from_json(
-                                                                reply_content)
-            self.logger.info('Measurement params processed.')
+
+    def confirm_start(self):
+        '''Confirm starting the measurement with the EventManager
+        '''
+        self._interface.start()
+
+
+    def confirm_end(self):
+        '''Confirm the end of the current measurement with the EventManager
+        '''
+        self._interface.end(self.measurement_params)
+
+
+    ## Measurement initialization
+    #############################
+
+
+    def init_measurement_setup(self):
+        '''Initialize instrument connections etc. before running measurement
+        '''
+        self.logger.debug('Initializing measurement setup...')
+        ## TODO
+        self.logger.info('Measurement setup initialization completed.')
 
 
     ## Main measurement function
     ############################
 
     def run_measurement(self):
-
-        ## Ensure that measurement parameters are present
-        if not self.measurement_params:
-            self.logger.error('No measurement params are present.')
-            return False
+        '''Run the measurement described by the current parameter set
+        '''
 
         ## Send measurement start confirmation
         self.logger.debug('Sending measurement start confirmation...')
-        self.meas_socket.send_multipart([MEAS_PROTOCOL.encode(), b'START'])
-        ## Receive acknowledgement
-        self.logger.debug('Awaiting acknowledgement...')
-        response = self.meas_socket.recv_multipart()
-        
+        self.confirm_start()
+
         ## Run the actual measurement
-        self.logger.debug('Starting measurement...')
+        self.logger.info('Starting measurement...')
+        self.measurement_params.set_start_time()
 
         ## Launch the measurement function
-        self.measurement_params.set_start_time()
         measurement_wrapper(self.measurement_params, self.logger)
         self.measurement_params.set_end_time()
         ## TODO add the measurement metadata that we want to transmit to the
         ## events listener (output file names etc.) to the MeasurementParams
         ## object
 
+        ## Measurement completion confirmation
         self.logger.debug('Measurement completed.')
-
-        ## Send measurement completion confirmation
-        self.meas_socket.send_multipart([
-                                MEAS_PROTOCOL.encode(),
-                                b'END',
-                                self.measurement_params.to_json().encode()])
-        ## Receive acknowledgement
-        response = self.meas_socket.recv_multipart()
+        self.confirm_end()
 
         ## End gracefully
         return True

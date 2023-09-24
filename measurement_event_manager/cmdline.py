@@ -204,23 +204,57 @@ def mem_launch_measurement():
     executable entry point and draw all necessary input parameters from there.
     '''
 
-    ## Parse command-line arguments
-    ###############################
+    ## Command-line arguments
 
     parser = argparse.ArgumentParser()
     parser.add_argument('socket_endpoint',
                         help='Endpoint for the socket used to communicate with a MEM instance',
                         action='store',
                         )
+    parser.add_argument('--file-log-level',
+                        help='Logging level for file output',
+                        default='info')
     cmd_args = parser.parse_args()
 
 
-    ## MeasurementController
-    ########################
+    ## Logging
 
-    ## Initialize the MeasurementController object
+    logger = logging.getLogger('MEM-Controller')
+    logger = mem_logging.quick_config(
+                logger,
+                console_log_level=None,
+                file_log_level=mem_logging.parse_log_level(
+                                                cmd_args.file_log_level),
+                )
+    logger.debug('Logging initialized.')
+
+
+    ## Communications setup
+    #######################
+
+
+    ## Initialize context
+    ## Note that here, we do explicitly want to create our own context even
+    ## though we could in principle pass in the one from the parent process
+    ## (EventManager). This is so we can maintain full independence, including
+    ## socket-alive-status independence, from the EventManager process, and 
+    ## either side can crash, revive, reconnect, etc. without any problems.
+    context = zmq.Context()
+
+    ## Controller request address
+    ## We require this to be specified explicitly in the command-line args, as
+    ## it is not passed by a human, but by the EventManager code
+    ctrl_request_endpoint = cmd_args.socket_endpoint
+
+
+    ## Controller client
+    ####################
+
+    ## Instantiate Controller client
     meas_controller = mem.controller.Controller(
-                            socket_endpoint=cmd_args.socket_endpoint,
+                            endpoint=ctrl_request_endpoint,
+                            logger=logger,
+                            zmq_context=context,
                             )
 
 
