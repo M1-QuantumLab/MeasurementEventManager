@@ -85,6 +85,7 @@ class MeasurementParams(object):
     def __init__(self,
                  submitter,
                  metadata=None,
+                 output=None,
                  setvals=None,
                  ):
 
@@ -107,6 +108,12 @@ class MeasurementParams(object):
             self.metadata = {}
         else:
             self.metadata = metadata
+
+        ## Output channel parameters
+        if output is None:
+            self.output = {}
+        else:
+            self.output = output
 
         ## Instrument parameters (measurement 'inputs')
         if setvals is None:
