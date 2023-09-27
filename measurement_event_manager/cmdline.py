@@ -20,8 +20,8 @@ from measurement_event_manager.interfaces.controller import (
 
 
 DEF_PROTOCOL = 'tcp'
-DEF_GUIDE_PORT = '9010'
-DEF_CTRL_PORT = '9011'
+DEF_GUIDE_PORT = '9025'
+DEF_CTRL_PORT = '9026'
 DEF_PUB_PORT = '9027'
 
 ## Max server tick time in ms
