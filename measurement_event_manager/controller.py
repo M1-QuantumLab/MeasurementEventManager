@@ -4,14 +4,15 @@ Delegated to by the MeasurementEventManager
 '''
 
 import logging
-import time
 
 import zmq
 
-from measurement_event_manager import measurement_params
 from measurement_event_manager.util import log as mem_logging
 from measurement_event_manager.interfaces.controller import (
     ControllerRequestInterface,
+)
+from measurement_event_manager.server_plugins.sleeper import (
+    SleeperServer,
 )
 
 
@@ -21,20 +22,6 @@ from measurement_event_manager.interfaces.controller import (
 
 ## ZMQ constants
 MEAS_PROTOCOL = 'MEM-MS/0.1'
-
-
-###############################################################################
-## Measurement function wrapper
-###############################################################################
-
-
-def measurement_wrapper(params, logger):
-    '''Wrapper for the actual measurement function
-    '''
-    for ii in range(10):
-        time.sleep(1)
-        logger.debug('Measurement tick {}'.format(ii))
-    return True
 
 
 ###############################################################################
@@ -48,7 +35,9 @@ class Controller(object):
     Communicates status with main MeasurementEventManager process through ZMQ.
     '''
 
-    def __init__(self, endpoint,
+    def __init__(self,
+        endpoint,
+        server_plugin='sleeper',
         logger=None,
         zmq_context=None,
         ):
@@ -66,6 +55,8 @@ class Controller(object):
         else:
             self.logger = logger
 
+        ## MEM ecosystem ##
+
         ## ZMQ messaging attributes
         self._endpoint = endpoint
         if zmq_context is None:
@@ -78,36 +69,27 @@ class Controller(object):
         ctrl_request_socket.connect(self._endpoint)
         self.logger.debug('Connected to socket at {}'.format(self._endpoint))
         
-        ## Initialize the interface
+        ## Initialize the interface to the EventManager
         self._interface = ControllerRequestInterface(
                                     socket=ctrl_request_socket,
                                     protocol_name='MEM-MC/0.1',
                                     logger=self.logger,
                                     )
 
-        ## At this point, the setup is completed, but because the Controller
-        ## lives in a process that the user doesn't interact with, we're not
-        ## waiting for user input. 
-        ## As such, we just execute all the functions that need to be executed
-        ## in order as part of the __init__ call.
-        ## If the paradigm changes in the future, for example if the Controller
-        ## is kept alive between measurements, then everything below this point
-        ## can be structured for on-demand execution rather that being run
-        ## automatically.
+        ## Instrument server plugin ##
 
-        ## Measurement parameters and execution
-        ## Initialize empty
-        ## The params will be populated when provided by the EventManager
-        self.measurement_params = None
-        ## Request measurement params from the parent MEM
-        self.get_measurement_params()
-        ## Measurement preprocessing and setup (connecting to instruments etc.)
-        self.init_measurement_setup()
-        ## Run the measurement using the supplied params
-        self.run_measurement()
+        ## Load instrument server plugin
+        if server_plugin == 'sleeper':
+            self._server = SleeperServer(logger=self.logger)
+        ## TODO make this dynamic, allowing the user to point to their own
+        ## files and server plugin definitions
 
-        ## TODO I think at some point we need to explicitly kill the 
-        ## Controller process? Especially if the logger is still open.
+        ## Misc ##
+
+        ## Current measurement params - initialize empty
+        ## The params will be populated when provided by the EventManager in
+        ## response to the appropriate request
+        self._measurement_params = None
 
 
     ## Communications with MEM
@@ -121,7 +103,7 @@ class Controller(object):
         ## Request new parameters from the EventManager
         new_params = self._interface.next()
         self.logger.info('New measurement params received from EventManager')
-        self.measurement_params = new_params
+        self._measurement_params = new_params
 
 
     def confirm_start(self):
@@ -133,23 +115,24 @@ class Controller(object):
     def confirm_end(self):
         '''Confirm the end of the current measurement with the EventManager
         '''
-        self._interface.end(self.measurement_params)
+        self._interface.end(self._measurement_params)
 
 
-    ## Measurement initialization
-    #############################
+    ## Instrument connections
+    #########################
 
 
-    def init_measurement_setup(self):
+    def server_setup(self):
         '''Initialize instrument connections etc. before running measurement
         '''
-        self.logger.debug('Initializing measurement setup...')
-        ## TODO
-        self.logger.info('Measurement setup initialization completed.')
+        self.logger.debug('Carrying out server setup...')
+        self._server.setup()
+        self.logger.info('Server setup completed.')
 
 
-    ## Main measurement function
-    ############################
+    ## Measurement execution
+    ########################
+
 
     def run_measurement(self):
         '''Run the measurement described by the current parameter set
@@ -161,11 +144,12 @@ class Controller(object):
 
         ## Run the actual measurement
         self.logger.info('Starting measurement...')
-        self.measurement_params.set_start_time()
+        self._measurement_params.set_start_time()
 
         ## Launch the measurement function
-        measurement_wrapper(self.measurement_params, self.logger)
-        self.measurement_params.set_end_time()
+        self._server.measure(self._measurement_params)
+        ## TODO handle crashes related to the underlying measurement software
+        self._measurement_params.set_end_time()
         ## TODO add the measurement metadata that we want to transmit to the
         ## events listener (output file names etc.) to the MeasurementParams
         ## object
