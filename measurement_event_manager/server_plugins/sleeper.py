@@ -24,12 +24,17 @@ TOTAL_SLEEP_TIME = 6
 class SleeperServer(BaseServer):
 
 
-    def measure(self, params):
-        '''Run an imitation measurement (log values and wait)
+    def preset(self, params):
+        '''Imitation preset; log fixed values
         '''
 
         ## Log parameter values
         self.log_params(params)
+
+
+    def measure(self, params):
+        '''Run an imitation measurement (log values and wait)
+        '''
 
         ## Wait
         self.logger.info('Starting imitation measurement')

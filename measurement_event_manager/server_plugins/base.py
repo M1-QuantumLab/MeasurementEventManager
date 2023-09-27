@@ -25,6 +25,12 @@ class BaseServer(object):
         pass
 
 
+    def preset(self, params):
+        '''Set all fixed instrument values before starting the measurement
+        '''
+        pass
+
+
     def measure(self, params):
         '''Execute the measurement based on the passed-in parameters object
         '''

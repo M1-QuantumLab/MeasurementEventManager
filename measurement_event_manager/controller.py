@@ -138,6 +138,10 @@ class Controller(object):
         '''Run the measurement described by the current parameter set
         '''
 
+        ## Preset fixed instrument values
+        self.logger.info('Presetting instrument values...')
+        self._server.preset(self._measurement_params)
+
         ## Send measurement start confirmation
         self.logger.debug('Sending measurement start confirmation...')
         self.confirm_start()
