@@ -61,7 +61,7 @@ class EventManager(object):
             return False
 
 
-    def new_measurement_trigger(self):
+    def new_measurement_trigger(self, disable_launch=False):
         '''Start a new measurement if allowed and/or possible
         '''
 
@@ -89,27 +89,34 @@ class EventManager(object):
         ## Pre-processing admin
         self._decrement_fetch_counter()
         self._current_measurement = next_measurement
-        self.logger.info('Launching measurement...')
 
-        ## Identify the OS as creating a detached process is handled differently
-        ## Windows
-        if os.name == 'nt':
-            flags = 0
-            flags |= 0x00000008  # DETACHED_PROCESS
-            flags |= 0x00000200  # CREATE_NEW_PROCESS_GROUP
-            # flags |= 0x08000000  # CREATE_NO_WINDOW
-            proc = subprocess.Popen(['mem_launch_measurement',
-                                     self._meas_request_endpoint],
-                                     close_fds=True,
-                                     creationflags=flags,
-                                     )
+        ## Actual subprocess launch can be disabled for debugging
+        if disable_launch:
+            self.logger.warning('Launch disabled; measurement thread is '
+                                'expected to be started manually.')
+        else:
+            self.logger.info('Launching measurement...')
+            ## Identify the OS as creating a detached process is handled
+            ## differently
+            ## Windows
+            if os.name == 'nt':
+                flags = 0
+                flags |= 0x00000008  # DETACHED_PROCESS
+                flags |= 0x00000200  # CREATE_NEW_PROCESS_GROUP
+                # flags |= 0x08000000  # CREATE_NO_WINDOW
+                proc = subprocess.Popen(['mem_launch_measurement',
+                                        self._meas_request_endpoint],
+                                        close_fds=True,
+                                        creationflags=flags,
+                                        )
 
-        ## Unix-like
-        elif os.name == 'posix':
-            proc = subprocess.Popen(['nohup', 'mem_launch_measurement',
-                                    self._meas_request_endpoint],
-                                    preexec_fn=os.setpgrp,
+            ## Unix-like
+            elif os.name == 'posix':
+                proc = subprocess.Popen(['nohup', 'mem_launch_measurement',
+                                        self._meas_request_endpoint],
+                                        preexec_fn=os.setpgrp,
                                     )
+
         return True
 
 

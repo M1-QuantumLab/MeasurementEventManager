@@ -58,6 +58,13 @@ def mem_server():
                              'completed measurements to Listeners',
                         action='store',
                         default=None)
+    parser.add_argument('--disable-measurement-launch',
+                        help='For debug use only; disables the actual launch '
+                             'of the Controller as a subprocess, which must '
+                             'instead be started manually by the user in a '
+                             'separate thread',
+                        action='store_true',
+                        default=False)
     cmd_args = parser.parse_args()
 
 
@@ -167,7 +174,9 @@ def mem_server():
         ## Attempt to start a new measurement
         ## All the logic of incrementing the fetch counter etc is handled by
         ## the MEM server instance
-        mem_server.new_measurement_trigger()
+        mem_server.new_measurement_trigger(
+                        disable_launch=cmd_args.disable_measurement_launch,
+                        )
 
         ## Communications
 
@@ -198,7 +207,8 @@ def mem_server():
 def mem_launch_measurement():
     '''Launch a measurement
 
-    To be used as a subprocess; do not run directly! 
+    Launched automatically by the EventManager during normal operation. Can be
+    run directly when debugging, but you should know what you're doing!
     
     Note that the arguments are passed in from the command-line and not to the
     function directly, to allow this function to be wrapped in a command-line
