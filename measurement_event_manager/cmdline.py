@@ -4,7 +4,8 @@ import logging
 
 import zmq
 
-import measurement_event_manager as mem
+from measurement_event_manager.controller import Controller
+from measurement_event_manager.event_manager import EventManager
 import measurement_event_manager.util.log as mem_logging
 from measurement_event_manager.interfaces.guide import (
     GuideReplyInterface,
@@ -133,10 +134,10 @@ def mem_server():
 
 
     ## Instantiate EventManager
-    mem_server = mem.event_manager.EventManager(
-                                    logger=logger,
-                                    controller_endpoint=ctrl_request_endpoint,
-                                    )
+    mem_server = EventManager(
+                              logger=logger,
+                              controller_endpoint=ctrl_request_endpoint,
+                             )
 
     ## Instantiate interfaces
 
@@ -251,7 +252,7 @@ def mem_launch_measurement():
     ####################
 
     ## Instantiate Controller client
-    meas_controller = mem.controller.Controller(
+    meas_controller = Controller(
                             endpoint=ctrl_request_endpoint,
                             logger=logger,
                             zmq_context=context,
