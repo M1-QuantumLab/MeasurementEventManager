@@ -4,7 +4,7 @@ standardized measurement specifications of the MEM ecosystem, and the specific
 structures and data formats of the user-selected instrument communications
 software.
 
-Here, the base class ServerPlugin is provided, which should be inherited from
+Here, the base class BaseServer is provided, which should be inherited from
 for the user's custom plugin for specific software.
 '''
 
