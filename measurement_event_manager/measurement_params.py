@@ -87,6 +87,7 @@ class MeasurementParams(object):
                  metadata=None,
                  output=None,
                  setvals=None,
+                 sweep=None,
                  ):
 
         ## Measurement submitter identification
@@ -120,6 +121,12 @@ class MeasurementParams(object):
             self.setvals = {}
         else:
             self.setvals = setvals
+
+        ## Sweep values
+        if sweep is None:
+            self.sweep = {}
+        else:
+            self.sweep = sweep
 
 
     ## JSON serialization
