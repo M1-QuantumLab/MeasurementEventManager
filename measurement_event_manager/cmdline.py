@@ -7,12 +7,15 @@ import zmq
 from measurement_event_manager.controller import Controller
 from measurement_event_manager.event_manager import EventManager
 import measurement_event_manager.util.log as mem_logging
+
 from measurement_event_manager.interfaces.guide import (
     GuideReplyInterface,
 )
 from measurement_event_manager.interfaces.controller import (
     ControllerReplyInterface,
 )
+
+from measurement_event_manager.server_plugins.pyhegel import PyHegelServer
 
 
 ###############################################################################
@@ -222,6 +225,12 @@ def mem_launch_measurement():
                         help='Endpoint for the socket used to communicate with a MEM instance',
                         action='store',
                         )
+    parser.add_argument('--instrument-config',
+                        help='Path to config file used for instrument driver '
+                             'setup',
+                        action='store',
+                        default='mem_pyhegel.yaml',
+                        )
     parser.add_argument('--file-log-level',
                         help='Logging level for file output',
                         default='info')
@@ -261,11 +270,18 @@ def mem_launch_measurement():
     ## Controller client
     ####################
 
+    ## Instantiate server interface
+    instrument_interface = PyHegelServer(
+                            config_path=cmd_args.instrument_config,
+                            logger=logger,
+                            )
+
     ## Instantiate Controller client
     meas_controller = Controller(
                             endpoint=ctrl_request_endpoint,
                             logger=logger,
                             zmq_context=context,
+                            server_plugin=instrument_interface,
                             )
 
 

@@ -12,7 +12,6 @@ from measurement_event_manager.interfaces.controller import (
     ControllerRequestInterface,
 )
 from measurement_event_manager.server_plugins.sleeper import SleeperServer
-from measurement_event_manager.server_plugins.pyhegel import PyHegelServer
 
 
 ###############################################################################
@@ -36,7 +35,7 @@ class Controller(object):
 
     def __init__(self,
         endpoint,
-        server_plugin='pyHegel',
+        server_plugin=None,
         logger=None,
         zmq_context=None,
         ):
@@ -78,12 +77,10 @@ class Controller(object):
         ## Instrument server plugin ##
 
         ## Load instrument server plugin
-        if server_plugin == 'sleeper':
+        if server_plugin is not None:
+            self._server = server_plugin
+        else:
             self._server = SleeperServer(logger=self.logger)
-        elif server_plugin == 'pyHegel':
-            self._server = PyHegelServer(logger=self.logger)
-        ## TODO make this dynamic, allowing the user to point to their own
-        ## files and server plugin definitions
 
         ## Misc ##
 

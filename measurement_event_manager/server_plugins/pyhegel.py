@@ -23,20 +23,20 @@ from measurement_event_manager.server_plugins.base import BaseServer
 class PyHegelServer(BaseServer):
 
 
-    def __init__(self, **kwargs):
+    def __init__(self, config_path, **kwargs):
         ## Define attributes we will need later
+        self._config_path = os.path.abspath(config_path)
         self._config = None
         ## Call the base class constructor
         super(PyHegelServer, self).__init__(**kwargs)
 
 
-    def setup(self, config_path='logical_template.yaml'):
+    def setup(self):
         '''Set up the pyHegel instrument registry according to the config
         '''
         ## Load config
-        config_path_full = os.path.abspath(config_path)
-        self.logger.info('Config path set to: {}'.format(config_path_full))
-        with open(config_path_full, 'r') as config_file:
+        self.logger.info('Loading config from {}'.format(self._config_path))
+        with open(self._config_path, 'r') as config_file:
             self._config = yaml.safe_load(config_file)
         self.logger.debug('Instrument config loaded from file.')
         ## Set up instruments with args in config (addresses, etc.)
