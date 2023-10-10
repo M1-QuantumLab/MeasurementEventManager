@@ -67,6 +67,13 @@ def mem_server():
     parser.add_argument('--file-log-level',
                         help='Logging level for file output',
                         default='debug')
+    parser.add_argument('--tick-interval',
+                        help='Set the server tick interval in ms; this sets '
+                             'the maximal interval the poller will wait for '
+                             'incoming messages within a single server tick',
+                        default=POLL_TIMEOUT,
+                        type=int,
+                        )
     parser.add_argument('--disable-measurement-launch',
                         help='For debug use only; disables the actual launch '
                              'of the Controller as a subprocess, which must '
@@ -193,7 +200,7 @@ def mem_server():
 
         ## Get poll on all sockets
         logger.info('Listening for messages on all sockets')
-        poll_all = dict(poller.poll(POLL_TIMEOUT))
+        poll_all = dict(poller.poll(cmd_args.tick_interval))
 
         ## Identify incoming request by socket, and pass to the appropriate
         ## interface along with the MEM server object
