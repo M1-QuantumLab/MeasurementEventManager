@@ -61,6 +61,12 @@ def mem_server():
                              'completed measurements to Listeners',
                         action='store',
                         default=None)
+    parser.add_argument('--console-log-level',
+                        help='Logging level for console output',
+                        default='info')
+    parser.add_argument('--file-log-level',
+                        help='Logging level for file output',
+                        default='debug')
     parser.add_argument('--disable-measurement-launch',
                         help='For debug use only; disables the actual launch '
                              'of the Controller as a subprocess, which must '
@@ -75,10 +81,12 @@ def mem_server():
     ##########
 
     logger = mem_logging.quick_config(
-                            logging.getLogger('MEM-EventManager'),
-                            console_log_level=logging.INFO,
-                            file_log_level=logging.DEBUG,
-                            )
+        logging.getLogger('MEM-EventManager'),
+        console_log_level=mem_logging.parse_log_level(
+            cmd_args.console_log_level),
+        file_log_level=mem_logging.parse_log_level(
+            cmd_args.file_log_level),
+        )
     logger.debug('Logging initialized.')
 
 
