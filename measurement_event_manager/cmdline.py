@@ -1,13 +1,14 @@
 import argparse
 import itertools
 import logging
+import os
 
+import yaml
 import zmq
 
 from measurement_event_manager.controller import Controller
 from measurement_event_manager.event_manager import EventManager
 import measurement_event_manager.util.log as mem_logging
-
 from measurement_event_manager.interfaces.guide import (
     GuideReplyInterface,
 )
@@ -47,6 +48,10 @@ def mem_server():
     ###############################
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('instrument_config',
+                        help='Path to the instrument config specification',
+                        action='store',
+                        )
     parser.add_argument('--guide-port',
                         help='Port used for Guide communication',
                         action='store',
@@ -157,12 +162,17 @@ def mem_server():
     ## EventManager and interfaces
     ##############################
 
+    ## Load instrument config
+    instrument_config_path = os.path.abspath(cmd_args.instrument_config)
+    with open(instrument_config_path, 'r') as config_file:
+        instrument_config = yaml.safe_load(config_file)
 
     ## Instantiate EventManager
     mem_server = EventManager(
-                              logger=logger,
-                              controller_endpoint=ctrl_request_endpoint,
-                             )
+        logger=logger,
+        controller_endpoint=ctrl_request_endpoint,
+        instrument_config=instrument_config,
+        )
 
     ## Instantiate interfaces
 
@@ -240,12 +250,6 @@ def mem_launch_measurement():
                         help='Endpoint for the socket used to communicate with a MEM instance',
                         action='store',
                         )
-    parser.add_argument('--instrument-config',
-                        help='Path to config file used for instrument driver '
-                             'setup',
-                        action='store',
-                        default='mem_pyhegel.yaml',
-                        )
     parser.add_argument('--file-log-level',
                         help='Logging level for file output',
                         default='info')
@@ -287,7 +291,6 @@ def mem_launch_measurement():
 
     ## Instantiate server interface
     instrument_interface = PyHegelServer(
-                            config_path=cmd_args.instrument_config,
                             logger=logger,
                             )
 

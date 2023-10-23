@@ -36,16 +36,23 @@ class EventManager(object):
     ###########################
 
 
-    def __init__(self, logger, controller_endpoint):
+    def __init__(self,
+        logger,
+        controller_endpoint,
+        instrument_config,
+        ):
+
         ## Assign logger
         self.logger = logger
         ## Create queue for measurements
         self.queue = queue.Queue()
 
+
         ## Active measurement
         self._current_measurement = None
 
         ## Declare variables for later
+        self._instrument_config = instrument_config
         self._meas_request_endpoint = controller_endpoint
         self._fetch_counter = -1
 
