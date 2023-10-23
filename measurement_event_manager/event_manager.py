@@ -57,6 +57,16 @@ class EventManager(object):
         self._fetch_counter = -1
 
 
+    ## Config and instrument setup
+    ##############################
+
+
+    def get_config(self):
+        '''Return the instrument config specified at launch
+        '''
+        return self._instrument_config
+
+
     ## Measurement status
     #####################
 

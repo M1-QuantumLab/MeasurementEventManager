@@ -23,24 +23,16 @@ from measurement_event_manager.server_plugins.base import BaseServer
 class PyHegelServer(BaseServer):
 
 
-    def __init__(self, config_path, **kwargs):
-        ## Define attributes we will need later
-        self._config_path = os.path.abspath(config_path)
-        self._config = None
+    def __init__(self, **kwargs):
         ## Call the base class constructor
         super(PyHegelServer, self).__init__(**kwargs)
 
 
-    def setup(self):
+    def setup(self, instrument_config):
         '''Set up the pyHegel instrument registry according to the config
         '''
-        ## Load config
-        self.logger.info('Loading config from {}'.format(self._config_path))
-        with open(self._config_path, 'r') as config_file:
-            self._config = yaml.safe_load(config_file)
-        self.logger.debug('Instrument config loaded from file.')
         ## Set up instruments with args in config (addresses, etc.)
-        for instr_name, instr_dict in self._config.items():
+        for instr_name, instr_dict in instrument_config.items():
             ## The driver name is the key, the value is a list of args
             driver_name = instr_dict.keys()[0]
             driver_args = instr_dict[driver_name]

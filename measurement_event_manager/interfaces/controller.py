@@ -1,3 +1,5 @@
+import json
+
 from measurement_event_manager import measurement_params
 from measurement_event_manager.interfaces.generic import (
     RequestInterface,
@@ -19,6 +21,22 @@ from measurement_event_manager.util.errors import (
 
 
 class ControllerRequestInterface(RequestInterface):
+
+
+    def config(self):
+        '''Send a CFG request, getting the instrument server config
+        '''
+        ## Send request based on header and body
+        reply_dict = self._send_request(header='CFG')
+        ## Parse reply
+        if reply_dict['header'] == 'CFG':
+            ## Decode JSON to config dict
+            config_dict = json.loads(reply_dict['body'][0])
+            return config_dict
+        elif reply_dict['header'] == 'ERR':
+            raise ServerError(reply_dict['body'])
+        else:
+            raise HeaderError(reply_dict['header'])
 
 
     def next(self):
@@ -88,7 +106,16 @@ class ControllerReplyInterface(ReplyInterface):
 
         ## Process request based on header
 
-        if header == 'NXT':
+        if header == 'CFG':
+            config = self._server.get_config()
+            if config is not None:
+                response_header = 'CFG'
+                response_body.append(json.dumps(config))
+            else:
+                response_header = 'ERR'
+                response_body.append('No instrument config is set')
+
+        elif header == 'NXT':
             response_header = 'NXT'
             mp_json = self._server.get_current_measurement_json()
             response_body.append(mp_json)

@@ -123,8 +123,11 @@ class Controller(object):
     def server_setup(self, **kwargs):
         '''Initialize instrument connections etc. before running measurement
         '''
+        self.logger.info('Requesting instrument config from EventManager...')
+        instrument_config = self._interface.config()
+        self.logger.info('Instrument config received.')
         self.logger.info('Carrying out server setup...')
-        self._server.setup(**kwargs)
+        self._server.setup(instrument_config, **kwargs)
         self.logger.info('Server setup completed.')
 
 

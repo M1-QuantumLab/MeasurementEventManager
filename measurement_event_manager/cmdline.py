@@ -306,10 +306,10 @@ def mem_launch_measurement():
     ## Controller tasks
     ###################
 
+    ## Instrument server setup
+    meas_controller.server_setup()
     ## Request measurement params from the parent EventManager
     meas_controller.get_measurement_params()
-    ## Measurement preprocessing and instrument setup
-    meas_controller.server_setup()
     ## Run the measurement
     meas_controller.run_measurement()
 
