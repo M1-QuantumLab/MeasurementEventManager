@@ -68,32 +68,39 @@ class PyHegelServer(BaseServer):
     def measure(self, params):
         '''Carry out the measurement using pyHegel sweep
         '''
-        
-        ## Get the sweep device
-        sweep_instr = ph_cmd._globaldict[params.sweep['instrument']]
-        sweep_device = getattr(sweep_instr, params.sweep['device'])
-        
-        ## Get sweep values
-        sweep_type = params.sweep.get('sweep_type', 'lin')
-        sweep_value_kwargs = {}
-        if sweep_type == 'lin':
-            sweep_value_kwargs['start'] = params.sweep['start_value']
-            sweep_value_kwargs['stop'] = params.sweep['stop_value']
-            sweep_value_kwargs['npts'] = params.sweep['n_pts']
-            sweep_value_kwargs['logspace'] = False
-        ## TODO implement logspace and custom value specification
-        else:
-            raise ValueError('sweep_type must be one of: {}'.format(
-                ['lin',]
-                ))
 
         ## Get the output device
         output_instr = ph_cmd._globaldict[params.output['instrument']]
         output_device = getattr(output_instr, params.output['device'])
-        
-        ## Call pyHegel sweep
-        ph_cmd.sweep(dev=sweep_device,
-                     out=output_device,
-                     filename='ph_big_test.txt',
-                     **sweep_value_kwargs)
 
+        ## Sweep is present in the config
+        if params.sweep:
+            sweep_instr = ph_cmd._globaldict[params.sweep['instrument']]
+            sweep_device = getattr(sweep_instr, params.sweep['device'])
+
+            ## Get sweep values
+            sweep_type = params.sweep.get('sweep_type', 'lin')
+            sweep_value_kwargs = {}
+            if sweep_type == 'lin':
+                sweep_value_kwargs['start'] = params.sweep['start_value']
+                sweep_value_kwargs['stop'] = params.sweep['stop_value']
+                sweep_value_kwargs['npts'] = params.sweep['n_pts']
+                sweep_value_kwargs['logspace'] = False
+            ## TODO implement logspace and custom value specification
+            else:
+                raise ValueError('sweep_type must be one of: {}'.format(
+                    ['lin',]
+                    ))
+
+            ## Call pyHegel sweep
+            ph_cmd.sweep(dev=sweep_device,
+                        out=output_device,
+                        filename='ph_big_test.txt',
+                        **sweep_value_kwargs)
+
+        ## Not sweeping - just a single call to get (eg a single VNA trace)
+        else:
+            ph_cmd.get(
+                dev=output_device,
+                filename='ph_single_test.txt',
+                )
