@@ -21,13 +21,20 @@ class MessageInterface(object):
 
 
     def __init__(self, socket=None, protocol_name=None, logger=None):
-        self.socket = socket
-        self.protocol_name = protocol_name
         if logger is None:
             self.logger = logging.getLogger(__name__)\
                                  .addHandler(logging.NullHandler())
         else:
             self.logger = logger
+        self.set_socket(socket)
+        self.protocol_name = protocol_name
+
+
+    def set_socket(self, socket=None):
+        if socket is not None:
+            self.socket = socket
+            self.logger.debug('Socket updated.')
+            return True
 
 
     def _pack_message(self, header, body=None):
