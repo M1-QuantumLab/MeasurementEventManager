@@ -34,6 +34,9 @@ DEF_PUB_PORT = '9027'
 ## in being unable to process ctrl-c events on Windows (apparently?)
 POLL_TIMEOUT = 2000
 
+## Set the default fetch counter to 0 so there are no nasty surprises
+DEF_FETCH_COUNTER = 0
+
 
 ###############################################################################
 ## MeasurementEventManager server
@@ -77,6 +80,13 @@ def mem_server():
                              'the maximal interval the poller will wait for '
                              'incoming messages within a single server tick',
                         default=POLL_TIMEOUT,
+                        type=int,
+                        )
+    parser.add_argument('--fetch-counter',
+                        help='Set the initial value of the fetch counter, '
+                             'indicating how many measurements will be '
+                             'launched when supplied from the queue',
+                        default=DEF_FETCH_COUNTER,
                         type=int,
                         )
     parser.add_argument('--disable-measurement-launch',
@@ -172,6 +182,7 @@ def mem_server():
         logger=logger,
         controller_endpoint=ctrl_request_endpoint,
         instrument_config=instrument_config,
+        fetch_counter=cmd_args.fetch_counter,
         )
 
     ## Instantiate interfaces

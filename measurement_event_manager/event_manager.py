@@ -40,6 +40,7 @@ class EventManager(object):
         logger,
         controller_endpoint,
         instrument_config,
+        fetch_counter=0,
         ):
 
         ## Assign logger
@@ -47,6 +48,9 @@ class EventManager(object):
         ## Create queue for measurements
         self.queue = queue.Queue()
 
+        ## Measurement queue fetch counter
+        self._fetch_counter = None
+        self.set_fetch_counter(fetch_counter)
 
         ## Active measurement
         self._current_measurement = None
@@ -54,7 +58,6 @@ class EventManager(object):
         ## Declare variables for later
         self._instrument_config = instrument_config
         self._meas_request_endpoint = controller_endpoint
-        self._fetch_counter = -1
 
 
     ## Config and instrument setup
@@ -189,7 +192,12 @@ class EventManager(object):
     def set_fetch_counter(self, new_counter):
         '''Set the number of measurements to be fetched before pausing
         '''
-        self._fetch_counter = int(new_counter)
+        counter_input = int(new_counter)
+        ## If the new value is < -1, we use -1 for consistency
+        if counter_input <= -1:
+            self._fetch_counter = -1
+        else:
+            self._fetch_counter = counter_input
         return self._fetch_counter
 
 
