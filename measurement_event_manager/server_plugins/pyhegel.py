@@ -75,10 +75,12 @@ class PyHegelServer(BaseServer):
 
         ## Get the target filepath
         target_filename = params.metadata.get('filename', 'default.txt')
-        target_path = os.path.join(
-            params.metadata.get('data_dir', None),
-            target_filename,
-        )
+        data_dir = params.metadata.get('data_dir', None)
+        ## Make sure the directory exists (otherwise pyHegel fails)
+        if not os.path.exists(data_dir):
+            self.logger.debug("Creating dirs: f{data_dir}")
+            os.makedirs(data_dir)
+        target_path = os.path.join(data_dir, target_filename)
 
         ## Sweep is present in the config
         if params.sweep:
