@@ -73,6 +73,13 @@ class PyHegelServer(BaseServer):
         output_instr = ph_cmd._globaldict[params.output['instrument']]
         output_device = getattr(output_instr, params.output['device'])
 
+        ## Get the target filepath
+        target_filename = params.metadata.get('filename', 'default.txt')
+        target_path = os.path.join(
+            params.metadata.get('data_dir', None),
+            target_filename,
+        )
+
         ## Sweep is present in the config
         if params.sweep:
             sweep_instr = ph_cmd._globaldict[params.sweep['instrument']]
@@ -93,14 +100,16 @@ class PyHegelServer(BaseServer):
                     ))
 
             ## Call pyHegel sweep
-            ph_cmd.sweep(dev=sweep_device,
-                        out=output_device,
-                        filename='ph_big_test.txt',
-                        **sweep_value_kwargs)
+            ph_cmd.sweep(
+                dev=sweep_device,
+                out=output_device,
+                filename=target_path,
+                **sweep_value_kwargs
+            )
 
         ## Not sweeping - just a single call to get (eg a single VNA trace)
         else:
             ph_cmd.get(
                 dev=output_device,
-                filename='ph_single_test.txt',
-                )
+                filename=target_path,
+            )
