@@ -82,6 +82,13 @@ class PyHegelServer(BaseServer):
             os.makedirs(data_dir)
         target_path = os.path.join(data_dir, target_filename)
 
+        ## Append the metadata from the config to the extra_conf to be
+        ## included in the output file
+        extras_list = [
+            str(key)+":"+str(value)
+            for key, value in params.metadata.items()
+        ]
+
         ## Sweep is present in the config
         if params.sweep:
             sweep_instr = ph_cmd._globaldict[params.sweep['instrument']]
@@ -106,6 +113,7 @@ class PyHegelServer(BaseServer):
                 dev=sweep_device,
                 out=output_device,
                 filename=target_path,
+                extra_conf=extras_list,
                 **sweep_value_kwargs
             )
 
@@ -114,4 +122,5 @@ class PyHegelServer(BaseServer):
             ph_cmd.get(
                 dev=output_device,
                 filename=target_path,
+                extra_conf=extras_list,
             )
