@@ -3,6 +3,7 @@ Control a single measurement at a time
 Delegated to by the MeasurementEventManager
 '''
 
+import os
 import logging
 
 import zmq
@@ -152,12 +153,12 @@ class Controller(object):
         self._measurement_params.set_start_time()
 
         ## Launch the measurement function
-        self._server.measure(self._measurement_params)
+        data_path = self._server.measure(self._measurement_params)
         ## TODO handle crashes related to the underlying measurement software
+        ## Add metadata associated with the completed measurement
         self._measurement_params.set_end_time()
-        ## TODO add the measurement metadata that we want to transmit to the
-        ## events listener (output file names etc.) to the MeasurementParams
-        ## object
+        self._measurement_params.output['data_path'] \
+                = os.path.abspath(data_path)
 
         ## Measurement completion confirmation
         self.logger.debug('Measurement completed.')

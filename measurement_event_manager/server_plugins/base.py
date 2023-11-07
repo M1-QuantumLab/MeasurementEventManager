@@ -34,5 +34,7 @@ class BaseServer(object):
     def measure(self, params):
         '''Execute the measurement based on the passed-in parameters object
         '''
-        pass
+        ## This function is expected to return the full path to the output
+        ## file created by the measurement
+        return None
 

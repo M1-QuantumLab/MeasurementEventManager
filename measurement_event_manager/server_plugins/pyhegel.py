@@ -6,6 +6,7 @@ Requires the pyHegel module to be installed; contact Christian for a copy.
 '''
 
 import os
+import time
 
 import yaml
 
@@ -73,14 +74,23 @@ class PyHegelServer(BaseServer):
         output_instr = ph_cmd._globaldict[params.output['instrument']]
         output_device = getattr(output_instr, params.output['device'])
 
-        ## Get the target filepath
+        ## Construct the target file path
+        ## Get the file name and directory
         target_filename = params.output.get('filename', 'default.txt')
         data_dir = params.output.get('data_dir', None)
         ## Make sure the directory exists (otherwise pyHegel fails)
         if not os.path.exists(data_dir):
             self.logger.debug("Creating dirs: f{data_dir}")
             os.makedirs(data_dir)
-        target_path = os.path.join(data_dir, target_filename)
+        ## Put the path together
+        full_path = os.path.join(data_dir, target_filename)
+        ## Do the pyHegel substitution, so we have a fixed string which we
+        ## can also use to associate a copy of the config with the
+        ## measurement
+        target_path, _ = ph_cmd._process_filename(
+            full_path,
+            now=time.time(),
+        )
 
         ## Append the metadata from the config to the extra_conf to be
         ## included in the output file
@@ -124,3 +134,7 @@ class PyHegelServer(BaseServer):
                 filename=target_path,
                 extra_conf=extras_list,
             )
+
+        ## Pass the output file path back to the caller for config dump,
+        ## database collation at the Listener, etc.
+        return target_path
