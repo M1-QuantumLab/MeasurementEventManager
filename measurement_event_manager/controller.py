@@ -3,9 +3,12 @@ Control a single measurement at a time
 Delegated to by the MeasurementEventManager
 '''
 
+from __future__ import unicode_literals
+
 import os
 import logging
 
+import yaml
 import zmq
 
 from measurement_event_manager.util import log as mem_logging
@@ -21,6 +24,12 @@ from measurement_event_manager.server_plugins.sleeper import SleeperServer
 
 ## ZMQ constants
 MEAS_PROTOCOL = 'MEM-MS/0.1'
+
+
+## Magic from StackOverflow
+def unicode_repr(self, data):
+    return self.represent_str(data.encode('utf-8'))
+yaml.representer.Representer.add_representer(unicode, unicode_repr)
 
 
 ###############################################################################
@@ -154,11 +163,25 @@ class Controller(object):
 
         ## Launch the measurement function
         data_path = self._server.measure(self._measurement_params)
+        full_path = os.path.abspath(data_path)
         ## TODO handle crashes related to the underlying measurement software
+
+        ## Dump the config associated with the measurement
+        ## Maybe allow this to be a separate directory?
+        config_path = os.path.splitext(full_path)[0]+'.yaml'
+        ## TODO if/when we upgrade everything to Py3, this can use the himl
+        ## dumper, as when dumping to json
+        ydump = yaml.safe_dump(
+            self._measurement_params.as_config(),
+            default_flow_style=False,
+        )
+        ## Write to file
+        with open(config_path, "w") as cfg_file:
+            cfg_file.write(ydump)
+
         ## Add metadata associated with the completed measurement
         self._measurement_params.set_end_time()
-        self._measurement_params.output['data_path'] \
-                = os.path.abspath(data_path)
+        self._measurement_params.output['data_path'] = full_path
 
         ## Measurement completion confirmation
         self.logger.debug('Measurement completed.')

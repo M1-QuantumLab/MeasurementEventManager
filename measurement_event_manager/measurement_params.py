@@ -2,6 +2,7 @@
 A class for packaging measurement metadata 
 '''
 
+import copy
 import datetime
 import json
 
@@ -156,6 +157,22 @@ class MeasurementParams(object):
         repr_string_list.append(')')
         repr_string = ''.join(repr_string_list)
         return repr_string
+
+
+    def as_config(self):
+        '''A dict representation appropriate for dumping as a config
+
+        Excludes keys such as start_time and end_time which are specific to
+        this instance of the measurement.
+        '''
+        ## Get dict representation of all the parameters
+        config_dict = copy.deepcopy(self.__dict__)
+        ## Exclude the keys specific to the measurement
+        exclude_keys = ('start_time', 'end_time',)
+        for exc_key in exclude_keys:
+            ## Use pop so we don't have to deal with exceptions
+            config_dict.pop(exc_key, None)
+        return config_dict
 
 
     ## Measurement administration
