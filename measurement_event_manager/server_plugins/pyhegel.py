@@ -117,6 +117,8 @@ class PyHegelServer(BaseServer):
                 raise ValueError('sweep_type must be one of: {}'.format(
                     ['lin',]
                     ))
+            ## Additional sweep parameters
+            sweep_value_kwargs['beforewait'] = params.sweep.get('wait', None)
 
             ## Call pyHegel sweep
             ph_cmd.sweep(
