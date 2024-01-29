@@ -326,4 +326,10 @@ def mem_launch_measurement():
 
 
 if __name__ == '__main__':
+    ## This is just for debugging, as console entry points cannot be debugged
+    ## as-is (https://stackoverflow.com/questions/64556874/how-can-i-debug-python-console-script-command-line-apps-with-the-vscode-debugger)
+    ## Change this depending on which part we want to debug
+    ## This is obviously not sustainable, and we should probably change it in
+    ## the future!
     mem_server()
+    # mem_launch_measurement()
