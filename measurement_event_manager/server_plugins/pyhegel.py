@@ -35,7 +35,9 @@ class PyHegelServer(BaseServer):
         ## Set up instruments with args in config (addresses, etc.)
         for instr_name, instr_dict in instrument_config.items():
             ## The driver name is the key, the value is a list of args
-            driver_name = instr_dict.keys()[0]
+            ## Convert (hopefully) single-key dict to list, as Py3 does not
+            ## allow subscripting of dict keys
+            driver_name = list(instr_dict.keys())[0]
             driver_args = instr_dict[driver_name]
             ## Initialize the instrument with the corresponding driver
             self.logger.info('Initializing {} with driver {}'\

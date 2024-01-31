@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 
 import os
 import logging
+import sys
 
 import yaml
 import zmq
@@ -27,9 +28,11 @@ MEAS_PROTOCOL = 'MEM-MS/0.1'
 
 
 ## Magic from StackOverflow
-def unicode_repr(self, data):
-    return self.represent_str(data.encode('utf-8'))
-yaml.representer.Representer.add_representer(unicode, unicode_repr)
+## Allegedly only necessary for Python 2.7
+if sys.version_info[0] < 3:
+    def unicode_repr(self, data):
+        return self.represent_str(data.encode('utf-8'))
+    yaml.representer.Representer.add_representer(unicode, unicode_repr)
 
 
 ###############################################################################
