@@ -32,8 +32,19 @@ class PyHegelServer(BaseServer):
     def setup(self, instrument_config):
         '''Set up the pyHegel instrument registry according to the config
         '''
+
         ## Set up instruments with args in config (addresses, etc.)
+        self.logger.info('Setting up instruments...')
         for instr_name, instr_dict in instrument_config.items():
+            ## If the instr_name begins with an underscore '_', it is a logical
+            ## device wrapper and will be handled differently below.
+            ## This is because the parent instrument (_LogicalInstrument)
+            ## doesn't play nicely in the same way as a regular instrument
+            if instr_name[0] == '_':
+                self.logger.debug(
+                    'Skipping {}, as it is a logical device'.format(instr_name)
+                )
+                continue
             ## The driver name is the key, the value is a list of args
             ## Convert (hopefully) single-key dict to list, as Py3 does not
             ## allow subscripting of dict keys
@@ -45,11 +56,58 @@ class PyHegelServer(BaseServer):
             self.logger.info('{}'.format(driver_args))
             instr = getattr(instruments, driver_name)(*driver_args)
             self.logger.debug('Instrument created; registering...')
-            ## Name fix from alexis - this might work to register the name properly
+            ## Name fix from Alexis
+            ## This allows us to register the name of the instrument
             instr.header.set(instr_name)
             ## Register the instrument with the global pyHegel namespace
             ph_cmd._globaldict[instr_name] = instr
             self.logger.info('Instrument registered.')
+
+        ## Now we'll do the logical device wrappers
+        self.logger.info('Setting up logical device wrappers...')
+        for dev_name, dev_dict in instrument_config.items():
+            ## Skip all legitimate instruments (they have already been handled)
+            if dev_name[0] != '_':
+                self.logger.debug(
+                    'Skipping {}, as it is a genuine instrument'\
+                    .format(dev_name)
+                )
+                continue
+            ## The device name is the key, the value is a DICT of args
+            ## We need to treat things like the basedev (which will be an
+            ## object handle) differently from passed-in parameter values
+            driver_name = list(dev_dict.keys())[0]
+            driver_kwargs = dev_dict[driver_name]
+            ## The special kwarg 'basedev' will be used to pass a
+            ## device object, so we have to fetch the correct object
+            ## first
+            if 'basedev' in driver_kwargs:
+                ## Parse the name, in the format instrument.device
+                basedev_iname, basedev_dname = driver_kwargs['basedev']\
+                                               .split('.')
+                self.logger.info(
+                    'Fetching the device {} from instrument {}'\
+                    .format(basedev_dname, basedev_iname)
+                )
+                ## Fetch the instrument
+                basedev_instr = ph_cmd._globaldict[basedev_iname]
+                ## Fetch the device
+                basedev_dev = getattr(basedev_instr, basedev_dname)
+                ## Replace the string specification with the actual object
+                driver_kwargs['basedev'] = basedev_dev
+            ## Create and assign the device directly, rather than the parent
+            ## instrument
+            self.logger.info('Initializing {} with driver {}'\
+                             .format(dev_name, driver_name))
+            self.logger.info('{}'.format(driver_kwargs))
+            dev = getattr(instruments, driver_name)(**driver_kwargs)
+            ## The name fix doesn't work here...
+            ## Register the device directly with the global pyHegel namespace
+            ph_cmd._globaldict[dev_name] = dev
+            self.logger.info("Logical device registered.")
+        ## TODO at some point if we have multiple levels of wrapping, or if we
+        ## need fancier capabilities, we will have to change the structure, but
+        ## for now this should work!
 
 
     def preset(self, params):
@@ -82,7 +140,7 @@ class PyHegelServer(BaseServer):
         data_dir = params.output.get('data_dir', None)
         ## Make sure the directory exists (otherwise pyHegel fails)
         if not os.path.exists(data_dir):
-            self.logger.debug("Creating dirs: f{data_dir}")
+            self.logger.debug('Creating dirs: f{data_dir}')
             os.makedirs(data_dir)
         ## Put the path together
         full_path = os.path.join(data_dir, target_filename)
@@ -97,14 +155,19 @@ class PyHegelServer(BaseServer):
         ## Append the metadata from the config to the extra_conf to be
         ## included in the output file
         extras_list = [
-            str(key)+":"+str(value)
+            str(key)+':'+str(value)
             for key, value in params.metadata.items()
         ]
 
         ## Sweep is present in the config
         if params.sweep:
-            sweep_instr = ph_cmd._globaldict[params.sweep['instrument']]
-            sweep_device = getattr(sweep_instr, params.sweep['device'])
+            ## Check if it is a fully-fledged instrument we want to sweep, or
+            ## instead a logical device (eg a SweepDevice wrapper)
+            if 'instrument' in params.sweep:
+                sweep_instr = ph_cmd._globaldict[params.sweep['instrument']]
+                sweep_device = getattr(sweep_instr, params.sweep['device'])
+            else:
+                sweep_device = ph_cmd._globaldict[params.sweep['device']]
 
             ## Get sweep values
             sweep_type = params.sweep.get('sweep_type', 'lin')
