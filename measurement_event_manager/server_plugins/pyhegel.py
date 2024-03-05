@@ -5,6 +5,7 @@ Sherbrooke).
 Requires the pyHegel module to be installed; contact Christian for a copy.
 '''
 
+from collections.abc import Mapping
 import os
 import time
 
@@ -161,38 +162,81 @@ class PyHegelServer(BaseServer):
 
         ## Sweep is present in the config
         if params.sweep:
-            ## Check if it is a fully-fledged instrument we want to sweep, or
-            ## instead a logical device (eg a SweepDevice wrapper)
-            if 'instrument' in params.sweep:
-                sweep_instr = ph_cmd._globaldict[params.sweep['instrument']]
-                sweep_device = getattr(sweep_instr, params.sweep['device'])
-            else:
-                sweep_device = ph_cmd._globaldict[params.sweep['device']]
 
-            ## Get sweep values
-            sweep_type = params.sweep.get('sweep_type', 'lin')
-            sweep_value_kwargs = {}
-            if sweep_type == 'lin':
-                sweep_value_kwargs['start'] = params.sweep['start_value']
-                sweep_value_kwargs['stop'] = params.sweep['stop_value']
-                sweep_value_kwargs['npts'] = params.sweep['n_pts']
-                sweep_value_kwargs['logspace'] = False
-            ## TODO implement logspace and custom value specification
-            else:
-                raise ValueError('sweep_type must be one of: {}'.format(
-                    ['lin',]
-                    ))
-            ## Additional sweep parameters
-            sweep_value_kwargs['beforewait'] = params.sweep.get('wait', None)
+            sweep_devices = []
+            sweep_kwargs_list = []
+
+            ## Iterate over sweep dimensions (dicts in a list)
+            for sweep_dim in params.sweep:
+
+                ## Start with defaults so we can guarantee presence of keys
+                sweep_kwargs = {
+                    "stop": None,
+                    "npts": None,
+                    "logspace": False,
+                    "reset": False,
+                    "close_after": False,
+                    "first_wait": None,
+                    "beforewait": None,
+                }
+
+                ## Check if it is a fully-fledged instrument we want to sweep, or
+                ## instead a logical device (eg a SweepDevice wrapper)
+                if 'instrument' in sweep_dim:
+                    sweep_instr = ph_cmd._globaldict[sweep_dim['instrument']]
+                    sweep_device = getattr(sweep_instr, sweep_dim['device'])
+                else:
+                    sweep_device = ph_cmd._globaldict[sweep_dim['device']]
+                ## Consolidate
+                sweep_devices.append(sweep_device)
+
+                ## Get sweep values
+                sweep_type = sweep_dim.get('sweep_type', 'lin')
+                if sweep_type == 'lin':
+                    sweep_kwargs['start'] = sweep_dim['start_value']
+                    sweep_kwargs['stop'] = sweep_dim['stop_value']
+                    sweep_kwargs['npts'] = sweep_dim['n_pts']
+                    sweep_kwargs['logspace'] = False
+                ## TODO implement logspace and custom value specification
+                elif sweep_type == 'list':
+                    sweep_kwargs['start'] = sweep_dim['values']
+                else:
+                    raise ValueError('sweep_type must be one of: {}'.format(
+                        ['lin',]
+                        ))
+                ## Additional sweep parameters
+                sweep_kwargs['beforewait'] = sweep_dim.get('wait', 0.0)
+
+                ## Consolidate
+                sweep_kwargs_list.append(sweep_kwargs)
 
             ## Call pyHegel sweep
-            ph_cmd.sweep(
-                dev=sweep_device,
-                out=output_device,
-                filename=target_path,
-                extra_conf=extras_list,
-                **sweep_value_kwargs
-            )
+            ## Single sweep
+            if len(params.sweep) == 1:
+                ## Here we don't bother with the containers to keep it simple
+                ph_cmd.sweep(
+                    dev=sweep_device,
+                    out=output_device,
+                    filename=target_path,
+                    extra_conf=extras_list,
+                    **sweep_kwargs,
+                )
+            ## MultiSweep
+            else:
+                ## Arrange kwargs correctly
+                multisweep_kwargs = {
+                    kk: [dd[kk] for dd in sweep_kwargs_list]
+                    for kk in sweep_kwargs_list[0]
+                }
+
+                ## Call multisweep
+                ph_cmd.sweep_multi(
+                    dev=sweep_devices,
+                    out=output_device,
+                    filename=target_path,
+                    extra_conf=extras_list,
+                    **multisweep_kwargs,
+                )
 
         ## Not sweeping - just a single call to get (eg a single VNA trace)
         else:

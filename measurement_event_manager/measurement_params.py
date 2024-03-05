@@ -2,6 +2,7 @@
 A class for packaging measurement metadata 
 '''
 
+from collections.abc import Mapping
 import copy
 import datetime
 import json
@@ -125,7 +126,11 @@ class MeasurementParams(object):
 
         ## Sweep values
         if sweep is None:
-            self.sweep = {}
+            self.sweep = []
+        ## Package a single sweep correctly to allow for MultiSweep
+        elif isinstance(sweep, Mapping):
+            self.sweep = [sweep,]
+        ## Otherwise, assume everything is correctly specified (ie list)
         else:
             self.sweep = sweep
 
