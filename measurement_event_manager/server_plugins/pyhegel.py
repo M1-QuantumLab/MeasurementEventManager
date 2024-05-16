@@ -131,9 +131,17 @@ class PyHegelServer(BaseServer):
         '''Carry out the measurement using pyHegel sweep
         '''
 
-        ## Get the output device
-        output_instr = ph_cmd._globaldict[params.output['instrument']]
-        output_device = getattr(output_instr, params.output['device'])
+        ## Get the output device(s)
+        output_device_list = []
+        if "channels" not in params.output:
+            self.logger.error("No output channels are defined!")
+        for channel_dict in params.output["channels"]:
+            output_instr = ph_cmd._globaldict[channel_dict['instrument']]
+            output_device = getattr(output_instr, channel_dict['device'])
+            ## We have the opportunity to do some more specifications here if
+            ## need be, eg by wrapping or some other tricks.
+            ## For now, we'll just use the device directly.
+            output_device_list.append(output_device)
 
         ## Construct the target file path
         ## Get the file name and directory
@@ -216,7 +224,7 @@ class PyHegelServer(BaseServer):
                 ## Here we don't bother with the containers to keep it simple
                 ph_cmd.sweep(
                     dev=sweep_device,
-                    out=output_device,
+                    out=output_device_list,
                     filename=target_path,
                     extra_conf=extras_list,
                     **sweep_kwargs,
@@ -232,7 +240,7 @@ class PyHegelServer(BaseServer):
                 ## Call multisweep
                 ph_cmd.sweep_multi(
                     dev=sweep_devices,
-                    out=output_device,
+                    out=output_device_list,
                     filename=target_path,
                     extra_conf=extras_list,
                     **multisweep_kwargs,
@@ -241,7 +249,7 @@ class PyHegelServer(BaseServer):
         ## Not sweeping - just a single call to get (eg a single VNA trace)
         else:
             ph_cmd.get(
-                dev=output_device,
+                dev=output_device_list,
                 filename=target_path,
                 extra_conf=extras_list,
             )
