@@ -142,6 +142,12 @@ class PyHegelServer(BaseServer):
             ## need be, eg by wrapping or some other tricks.
             ## For now, we'll just use the device directly.
             output_device_list.append(output_device)
+        ## pyHegel doesn't like sequences with only one element
+        if len(output_device_list) == 1:
+            output_devices = output_device_list[0]
+        ## It also doesn't like lists, so we convert to a tuple
+        else:
+            output_devices = tuple(output_device_list)
 
         ## Construct the target file path
         ## Get the file name and directory
@@ -149,7 +155,7 @@ class PyHegelServer(BaseServer):
         data_dir = params.output.get('data_dir', None)
         ## Make sure the directory exists (otherwise pyHegel fails)
         if not os.path.exists(data_dir):
-            self.logger.debug('Creating dirs: f{data_dir}')
+            self.logger.debug(f'Creating dirs: {data_dir}')
             os.makedirs(data_dir)
         ## Put the path together
         full_path = os.path.join(data_dir, target_filename)
@@ -224,7 +230,7 @@ class PyHegelServer(BaseServer):
                 ## Here we don't bother with the containers to keep it simple
                 ph_cmd.sweep(
                     dev=sweep_device,
-                    out=output_device_list,
+                    out=output_devices,
                     filename=target_path,
                     extra_conf=extras_list,
                     **sweep_kwargs,
@@ -240,7 +246,7 @@ class PyHegelServer(BaseServer):
                 ## Call multisweep
                 ph_cmd.sweep_multi(
                     dev=sweep_devices,
-                    out=output_device_list,
+                    out=output_devices,
                     filename=target_path,
                     extra_conf=extras_list,
                     **multisweep_kwargs,
@@ -249,7 +255,7 @@ class PyHegelServer(BaseServer):
         ## Not sweeping - just a single call to get (eg a single VNA trace)
         else:
             ph_cmd.get(
-                dev=output_device_list,
+                dev=output_devices,
                 filename=target_path,
                 extra_conf=extras_list,
             )
