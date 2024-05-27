@@ -97,3 +97,34 @@ def quick_config(logger,
     logger.setLevel(min(xx.level for xx in logger.handlers))
 
     return logger
+
+
+## Redirecting streams to logger objects
+########################################
+
+
+class StreamToLogger:
+    """
+    Fake file-like stream object that redirects writes to a logger instance
+
+    From https://stackoverflow.com/a/66209331, which handles newlines correctly
+
+    To redirect to an existing logger, do something like:
+    sys.stderr = StreamToLogger(logger, logging.ERROR)
+    """
+
+    def __init__(self, logger, level):
+        self.logger = logger
+        self.level = level
+        self.buffer = []
+
+    def write(self, msg):
+        if msg.endswith("\n"):
+            self.buffer.append(msg.removesuffix("\n"))
+            self.logger.log(self.level, "".join(self.buffer))
+            self.buffer = []
+        else:
+            self.buffer.append(msg)
+
+    def flush(self):
+        pass

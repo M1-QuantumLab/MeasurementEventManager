@@ -2,6 +2,7 @@ import argparse
 import itertools
 import logging
 import os
+import sys
 
 import yaml
 import zmq
@@ -277,6 +278,10 @@ def mem_launch_measurement():
                                                 cmd_args.file_log_level),
                 )
     logger.debug('Logging initialized.')
+
+    ## Redirect stderr to logger, preserving lower-level error messages that
+    ## would otherwise be lost on process crash
+    sys.stderr = mem_logging.StreamToLogger(logger, logging.ERROR)
 
 
     ## Communications setup

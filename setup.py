@@ -7,7 +7,7 @@ _requires = [ r for r in
 
 setuptools.setup(
     name='MeasurementEventManager',
-    version="0.4.1",
+    version="0.4.2",
     description='Server for measurement queuing and processing',
     author='Sam Wolski',
     python_requires='>=2.7',
