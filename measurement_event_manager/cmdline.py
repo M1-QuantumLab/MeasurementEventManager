@@ -32,7 +32,7 @@ DEF_PUB_PORT = '9027'
 ## Max server tick time in ms
 ## We pass this in to prevent infinite waits on poller.poll, which would result
 ## in being unable to process ctrl-c events on Windows (apparently?)
-POLL_TIMEOUT = 2000
+TICK_INTERVAL = 5000
 
 ## Set the default fetch counter to 0 so there are no nasty surprises
 DEF_FETCH_COUNTER = 0
@@ -79,7 +79,7 @@ def mem_server():
                         help='Set the server tick interval in ms; this sets '
                              'the maximal interval the poller will wait for '
                              'incoming messages within a single server tick',
-                        default=POLL_TIMEOUT,
+                        default=TICK_INTERVAL,
                         type=int,
                         )
     parser.add_argument('--fetch-counter',
