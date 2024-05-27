@@ -142,12 +142,6 @@ class PyHegelServer(BaseServer):
             ## need be, eg by wrapping or some other tricks.
             ## For now, we'll just use the device directly.
             output_device_list.append(output_device)
-        ## pyHegel doesn't like sequences with only one element
-        if len(output_device_list) == 1:
-            output_devices = output_device_list[0]
-        ## It also doesn't like lists, so we convert to a tuple
-        else:
-            output_devices = tuple(output_device_list)
 
         ## Construct the target file path
         ## Get the file name and directory
@@ -176,6 +170,9 @@ class PyHegelServer(BaseServer):
 
         ## Sweep is present in the config
         if params.sweep:
+
+            ## When sweeping, we can pass the list of output devices directly
+            output_devices = output_device_list
 
             sweep_devices = []
             sweep_kwargs_list = []
@@ -254,6 +251,21 @@ class PyHegelServer(BaseServer):
 
         ## Not sweeping - just a single call to get (eg a single VNA trace)
         else:
+
+            ## When not sweeping, we need to be more careful about the handling
+            ## of single vs multiple outputs (pyHegel quirks, apparently).
+            ## If there is only a single output device, we pass it in by itself
+            if len(output_device_list) == 1:
+                output_devices = output_device_list[0]
+            else:
+                ## I cannot figure out how to get multiple output channels to
+                ## work in a straight get() call with no sweeps.
+                raise NotImplementedError(
+                    "It is unclear at this time how to handle multiple output "
+                    "channels in an unswept call to get()."
+                )
+                # output_devices = tuple(output_device_list)
+
             ph_cmd.get(
                 dev=output_devices,
                 filename=target_path,
