@@ -37,7 +37,7 @@ class MessageInterface(object):
 
 
     def __init__(self,
-        socket: Optional[zmq.socket.Socket] = None,
+        socket: Optional[zmq.Socket] = None,
         protocol_name: Optional[str] = None,
         logger: Optional[logging.Logger] = None,
         ):
@@ -67,7 +67,7 @@ class MessageInterface(object):
 
 
     def set_socket(self,
-        socket: Optional[zmq.socket.Socket] = None,
+        socket: Optional[zmq.Socket] = None,
         ) -> bool:
         """Set the ZeroMQ socket for messaging.
 
