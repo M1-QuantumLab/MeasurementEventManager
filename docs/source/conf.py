@@ -1,5 +1,11 @@
 # Configuration file for the Sphinx documentation builder.
 
+import os
+import sys
+
+## Add path to package root
+sys.path.insert(0, os.path.abspath('../..'))
+
 # -- Project information
 
 project = 'MeasurementEventManager'
