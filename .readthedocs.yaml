@@ -27,6 +27,7 @@ sphinx:
 python:
   install:
   - requirements: docs/requirements.txt
+  - requirements: requirements.txt
   # Install self before building docs
   - method: pip
     path: .

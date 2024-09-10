@@ -21,7 +21,7 @@ extensions = [
     'sphinx.ext.napoleon',
 ]
 
-autodoc_mock_imports = ["zmq", "pyHegel"]
+autodoc_mock_imports = ["pyHegel"]
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),

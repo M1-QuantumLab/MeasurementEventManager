@@ -9,8 +9,6 @@ from collections.abc import Mapping
 import os
 import time
 
-import yaml
-
 import pyHegel.commands as ph_cmd
 import pyHegel.instruments as instruments
 
