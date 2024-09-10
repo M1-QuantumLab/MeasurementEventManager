@@ -29,9 +29,9 @@ out measurements for scientific experiments in a way that:
 1. There should be a separation between measurement *definition* and
 *execution*, allowing for flexible batch measurements, queueing, and
 generating specifications based on the analyzed results of prior measurements.
-2. The measurement specification should be agnostic to
-    a. lower layers in the stack (instrument server, drivers, hardware);
-    b. generation (programmatic or manual).
+2. The measurement specification should be agnostic to lower layers in the
+stack (instrument server, drivers, hardware), as well as generation method
+(programmatic or manual).
 
 From the these goals, the following principles were established for the MEM
 ecosystem:

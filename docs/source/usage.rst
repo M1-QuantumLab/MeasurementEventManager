@@ -30,6 +30,4 @@ protocol.
 Installation
 ------------
 
-
-.. code-block:: console
-    $ pip install MeasurementEventManager
+foo bar
