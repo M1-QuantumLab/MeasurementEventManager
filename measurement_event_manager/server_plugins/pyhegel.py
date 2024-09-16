@@ -5,14 +5,15 @@ Sherbrooke).
 Requires the pyHegel module to be installed; contact Christian for a copy.
 '''
 
-from collections.abc import Mapping
 import os
 import time
+from typing import Mapping
 
 import pyHegel.commands as ph_cmd
 import pyHegel.instruments as instruments
 
-from measurement_event_manager.server_plugins.base import BaseServer
+from measurement_event_manager.measurement_params import MeasurementParams
+from .base import BaseServer
 
 
 ###############################################################################

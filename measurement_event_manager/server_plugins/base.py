@@ -7,6 +7,10 @@ software.
 Here, the base class BaseServer is provided, which should be inherited from
 for the user's custom plugin for specific software.
 '''
+import logging
+from typing import Optional, Mapping
+
+from measurement_event_manager.measurement_params import MeasurementParams
 
 class BaseServer(object):
 

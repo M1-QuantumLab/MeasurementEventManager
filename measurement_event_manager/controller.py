@@ -8,15 +8,17 @@ from __future__ import unicode_literals
 import os
 import logging
 import sys
+from typing import Optional
 
 import yaml
 import zmq
 
-from measurement_event_manager.util import log as mem_logging
-from measurement_event_manager.interfaces.controller import (
+from .util import log as mem_logging
+from .interfaces.controller import (
     ControllerRequestInterface,
 )
-from measurement_event_manager.server_plugins.sleeper import SleeperServer
+from .server_plugins.base import BaseServer
+from .server_plugins.sleeper import SleeperServer
 
 
 ###############################################################################

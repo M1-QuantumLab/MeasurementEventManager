@@ -2,7 +2,6 @@
 A class for packaging measurement metadata 
 '''
 
-from collections.abc import Mapping
 import copy
 import datetime
 import json
@@ -75,6 +74,7 @@ def from_json(json_object):
     '''Construct a MeasurementParams instance from a JSON object
     '''
     return json.loads(json_object, object_hook=_mp_from_json)
+from typing import Mapping, Optional, Sequence
 
 
 ###############################################################################

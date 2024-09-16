@@ -5,7 +5,8 @@ dry-running the experiment flow and/or debugging the MEM ecosystem.
 
 import time
 
-from measurement_event_manager.server_plugins.base import BaseServer
+from measurement_event_manager.measurement_params import MeasurementParams
+from .base import BaseServer
 
 
 ###############################################################################

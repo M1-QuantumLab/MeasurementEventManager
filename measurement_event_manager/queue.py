@@ -5,8 +5,10 @@ MeasurementEventManager.
 
 import collections
 import copy
+from typing import Iterable, List, Optional
 
-from measurement_event_manager.util.errors import QueueEmptyError
+from .measurement_params import MeasurementParams
+from .util.errors import QueueEmptyError
 
 
 ###############################################################################

@@ -4,14 +4,17 @@ The main MeasurementEventManager class.
 
 ## Python 3+ introduced the abc submodule in collections
 try:
-    from collections.abc import Iterable
+    from collections.abc import Mapping
 except ImportError:
-    from collections import Iterable
+    from collections import Mapping
+import logging
 import os
 import subprocess
+from typing import List, Iterable, Optional
 
-from measurement_event_manager import queue
-from measurement_event_manager.util.errors import QueueEmptyError
+from .measurement_params import MeasurementParams
+from .queue import Queue
+from .util.errors import QueueEmptyError
 
 
 ###############################################################################

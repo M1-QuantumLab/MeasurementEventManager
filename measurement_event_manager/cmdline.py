@@ -7,17 +7,12 @@ import sys
 import yaml
 import zmq
 
-from measurement_event_manager.controller import Controller
-from measurement_event_manager.event_manager import EventManager
-import measurement_event_manager.util.log as mem_logging
-from measurement_event_manager.interfaces.guide import (
-    GuideReplyInterface,
-)
-from measurement_event_manager.interfaces.controller import (
-    ControllerReplyInterface,
-)
-
-from measurement_event_manager.server_plugins.pyhegel import PyHegelServer
+from .controller import Controller
+from .event_manager import EventManager
+from .interfaces.controller import ControllerReplyInterface
+from .interfaces.guide import GuideReplyInterface
+from .server_plugins.pyhegel import PyHegelServer
+from .util import log as mem_logging
 
 
 ###############################################################################

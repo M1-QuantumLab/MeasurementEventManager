@@ -1,13 +1,13 @@
 import json
 
 from measurement_event_manager import measurement_params
-from measurement_event_manager.interfaces.generic import (
-    RequestInterface,
-    ReplyInterface,
-)
 from measurement_event_manager.util.errors import (
     ServerError,
     HeaderError,
+)
+from .generic import (
+    RequestInterface,
+    ReplyInterface,
 )
 
 
