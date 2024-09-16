@@ -1,3 +1,15 @@
+"""
+Guide messaging interfaces
+
+These interfaces provide communication between a Guide service, the frontend of
+the MEM ecosystem, and the EventManager service, according to the MEM-GD
+protocol specification.
+Customization of the Guide frontend can thus be carried out without requiring
+a re-implementation of the messaging inteface, by using an instance of the GuideRequestInterface provided here as an attribute.
+"""
+
+from typing import Iterable, List
+
 from measurement_event_manager import measurement_params
 from measurement_event_manager.util.errors import (
     QueueEmptyError,
@@ -20,11 +32,29 @@ from .generic import (
 
 
 class GuideRequestInterface(RequestInterface):
+    """An inteface for requests in the Guide REQ-REP pattern
+
+    This interface should be associeted with the Guide process, converting API
+    calls into messages sent to the EventManager service.
+    The request messages include submitting measurement definitions, queue
+    management, etc.
+    """
 
 
-    def add(self, params):
-        '''Send an ADD request with the given MeasurementParams object
-        '''
+    def add(self, params: measurement_params.MeasurementParams) -> List[int]:
+        """Add a measurement definition to the queue
+
+        Args:
+            params: The submitted measurement definition.
+
+        Returns:
+            The queue index at which the measurement was added.
+
+        Raises:
+            HeaderError: Reply header does not match the request header
+            ServerError: The server experienced an unspecified error
+        """
+
         ## Serialize the MeasurementParams object
         params_json = params.to_json()
         ## Send request based on header and body
@@ -39,9 +69,17 @@ class GuideRequestInterface(RequestInterface):
             raise HeaderError(reply_dict['header'])
 
 
-    def query(self):
-        '''Send a QUE request, returning items in the server queue
-        '''
+    def query(self) -> List[measurement_params.MeasurementParams]:
+        """Query the state of the queue
+
+        Returns:
+            The measurement definitions currently in the queue.
+
+        Raises:
+            HeaderError: Reply header does not match the request header
+            ServerError: The server experienced an unspecified error
+        """
+
         reply_dict = self._send_request(header='QUE')
         if reply_dict['header'] == 'QUE':
             queue_json = reply_dict['body']
@@ -54,9 +92,17 @@ class GuideRequestInterface(RequestInterface):
             raise HeaderError(reply_dict['header'])
 
 
-    def len(self):
-        '''Send a LEN request, returning the length of the server queue
-        '''
+    def len(self) -> int:
+        """Get the length of the queue
+
+        Returns:
+            The current length of the queue.
+
+        Raises:
+            HeaderError: Reply header does not match the request header
+            ServerError: The server experienced an unspecified error
+        """
+
         reply_dict = self._send_request(header='LEN')
         if reply_dict['header'] == 'LEN':
             return int(reply_dict['body'][0])
@@ -66,13 +112,24 @@ class GuideRequestInterface(RequestInterface):
             raise HeaderError(reply_dict['header'])
 
 
-    def remove(self, index_list):
-        '''Send a RMV request, deleting measurements at the specified indices
+    def remove(self, index_list: Iterable[int]) -> List[int]:
+        """Remove measurements from the queue
 
-        indices must be an iterable of individual indices convertible to str
-        type. Resolving syntactic sugar (eg slices) and ensuring the validity
-        of the passed-in indices is the responsibility of the caller.
-        '''
+        Items to remove are specified by index.
+        Note that resolving syntactic sugar (eg slices) and ensuring the
+        validity of the passed-in indices is the responsibility of the caller!
+
+        Args:
+            index_list: Nonnegative indices, convertible to strings
+        
+        Returns:
+            The indices at which measurements were removed from the queue.
+
+        Raises:
+            HeaderError: Reply header does not match the request header
+            ServerError: The server experienced an unspecified error
+        """
+
         ## Ensure all indices are string type
         indices_str = [str(ii) for ii in index_list]
         ## Send request
@@ -88,8 +145,17 @@ class GuideRequestInterface(RequestInterface):
             raise HeaderError(reply_dict['header'])
 
 
-    def get_counter(self):
-        '''Send an empty FCH request to query the fetch counter value'''
+    def get_counter(self) -> int:
+        """Check the state of the fetch counter
+
+        Returns:
+            The current value of the fetch counter.
+
+        Raises:
+            HeaderError: Reply header does not match the request header
+            ServerError: The server experienced an unspecified error
+        """
+
         reply_dict = self._send_request(header='FCH')
         if reply_dict['header'] == 'FCH':
             counter = int(reply_dict['body'][0])
@@ -100,9 +166,20 @@ class GuideRequestInterface(RequestInterface):
             raise HeaderError(reply_dict['header'])
 
 
-    def set_counter(self, value):
-        '''Send a FCH request, specifying the new fetch counter value
-        '''
+    def set_counter(self, value: int) -> int:
+        """Specify a new value for the fetch counter
+
+        Args:
+            value: The new value for the fetch counter.
+
+        Returns:
+            The value of the fetch counter after setting.
+
+        Raises:
+            HeaderError: Reply header does not match the request header
+            ServerError: The server experienced an unspecified error
+        """
+
         ## Convert the new value to a str and pack in a list
         value_msg = [str(value)]
         ## Send request
@@ -121,9 +198,25 @@ class GuideRequestInterface(RequestInterface):
 
 
 class GuideReplyInterface(ReplyInterface):
+    """An interface for replies in the Guide REQ-REP pattern
+
+    This interface should be associated with the EventManager service, inducing
+    API calls corresponding to user input actions and/or responding with the
+    requested information.
+    """
 
 
-    def process_request(self):
+    def process_request(self) -> None:
+        """Process a received request
+
+        When called, process the next request message in the queue from the
+        Guide.
+        The actual actions taken depend on the type of request, ie. the message
+        header.
+
+        Unrecognized but structurally-valid messages will not raise an error,
+        but will instead result in a reply with an error header.
+        """
 
         ## Receive request
         request_dict = self._receive_request()

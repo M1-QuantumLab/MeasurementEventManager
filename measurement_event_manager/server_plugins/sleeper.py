@@ -1,6 +1,5 @@
 """
-The sleeper is a do-nearly-nothing instrument server that allows for 
-dry-running the experiment flow and/or debugging the MEM ecosystem.
+A do-nearly-nothing instrument server plugin
 """
 
 import time
@@ -23,19 +22,20 @@ TOTAL_SLEEP_TIME = 6
 
 
 class SleeperServer(BaseServer):
+    """A do-nearly-nothing instrument server plugin
+
+    Intended for testing the workflow and/or debugging the MEM ecosystem.
+    Does not require an actual instrument server application to function.
+    """
 
 
-    def preset(self, params):
-        '''Imitation preset; log fixed values
-        '''
+    def preset(self, params: MeasurementParams) -> None:
 
         ## Log parameter values
-        self.log_params(params)
+        self._log_params(params)
 
 
-    def measure(self, params):
-        '''Run an imitation measurement (log values and wait)
-        '''
+    def measure(self, params: MeasurementParams) -> str:
 
         ## Wait
         self.logger.info('Starting imitation measurement')
@@ -43,22 +43,26 @@ class SleeperServer(BaseServer):
             self.logger.info('Imitation measurement tick {}'.format(ii))
             time.sleep(1)
         self.logger.info('Imitation measurement completed.')
+        return ""
 
 
-    def log_params(self, params):
-        '''Log the values of the settings in the MeasurementParams object
-        '''
+    def _log_params(self, params: MeasurementParams) -> None:
+        """Log the parameters stored in the measurement definition
+
+        Args:
+            params: The measurement definition
+        """
 
         ## Defined here so we can change it easily if we need to
         write_fn = self.logger.info
 
         write_fn('### Measurement params ###')
         write_fn('Submitter: {}'.format(params.submitter))
-        
+
         write_fn('+++ Metadata: +++')
         for key, value in params.metadata.items():
             write_fn('    {}: {}'.format(key, value))
-        
+
         write_fn('+++ Output: +++')
         for key, value in params.output.items():
             write_fn('    {}: {}'.format(key, value))
@@ -70,4 +74,3 @@ class SleeperServer(BaseServer):
                 write_fn('    {}: {}'.format(key, value))
 
         write_fn('##########################')
-

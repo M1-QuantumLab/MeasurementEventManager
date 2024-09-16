@@ -1,3 +1,10 @@
+"""
+Controller/measurement messaging interfaces
+
+These interfaces provide communication between the EventManager and Controller
+instances, according to the MEM-MS protocol specification.
+"""
+
 import json
 
 from measurement_event_manager import measurement_params
@@ -21,11 +28,25 @@ from .generic import (
 
 
 class ControllerRequestInterface(RequestInterface):
+    """An interface for requests in the Controller REQ-REP pattern
+
+    This interface should be associated with the spawned Controller process,
+    which requests measurement definitions and provides status updates to the
+    EventManager service.
+    """
 
 
-    def config(self):
-        '''Send a CFG request, getting the instrument server config
-        '''
+    def config(self) -> dict:
+        """Get the instrument server config
+
+        Returns:
+            The instrument server config.
+
+        Raises:
+            HeaderError: Reply header does not match the request header
+            ServerError: The server experienced an unspecified error
+        """
+
         ## Send request based on header and body
         reply_dict = self._send_request(header='CFG')
         ## Parse reply
@@ -39,9 +60,17 @@ class ControllerRequestInterface(RequestInterface):
             raise HeaderError(reply_dict['header'])
 
 
-    def next(self):
-        '''Send a NXT request, returning the next measurement to be run
-        '''
+    def next(self) -> measurement_params.MeasurementParams:
+        """Get the definition of the next measurement to be run
+
+        Returns:
+            The specification of the currently-active measurement.
+
+        Raises:
+            HeaderError: Reply header does not match the request header
+            ServerError: The server experienced an unspecified error
+        """
+
         ## Send request based on header and body
         reply_dict = self._send_request(header='NXT')
         ## Parse reply
@@ -55,9 +84,17 @@ class ControllerRequestInterface(RequestInterface):
             raise HeaderError(reply_dict['header'])
 
 
-    def start(self):
-        '''Send a STA request, confirming measurement start
-        '''
+    def start(self) -> bool:
+        """Declare the start of the current measurement to the server
+
+        Returns:
+            True if the measurement start is accepted by the server.
+
+        Raises:
+            HeaderError: Reply header does not match the request header
+            ServerError: The server experienced an unspecified error
+        """
+
         ## Send request based on header and body
         reply_dict = self._send_request(header='STA')
         ## Parse reply
@@ -69,9 +106,20 @@ class ControllerRequestInterface(RequestInterface):
             raise HeaderError(reply_dict['header'])
 
 
-    def end(self, params):
-        '''Send an END request, indicating the measurement has completed
-        '''
+    def end(self, params: measurement_params.MeasurementParams) -> bool:
+        """Declare the end of the current measurement to the server
+
+        Args:
+            params: The completed measurement definition.
+
+        Returns:
+            True if the measurement end is accepted by the server.
+
+        Raises:
+            HeaderError: Reply header does not match the request header
+            ServerError: The server experienced an unspecified error
+        """
+
         ## Serialize the MeasurementParams object
         params_json = params.to_json()
         ## Send request based on header and body
@@ -91,10 +139,26 @@ class ControllerRequestInterface(RequestInterface):
 
 
 class ControllerReplyInterface(ReplyInterface):
+    """An interface for replies in the Controller REQ-REP pattern
+
+    This interface should be associated with the EventManager service,
+    providing requested measurement definitions and receiving status updates
+    from the spawned Controller process.
+    """
 
 
-    def process_request(self):
-        
+    def process_request(self) -> None:
+        """Process a received request
+
+        When called, process the next request message in the queue from the
+        Controller.
+        The actual actions taken depend on the type of request, ie. the message
+        header.
+
+        Unrecognized but structurally-valid messsages will not raise an error,
+        but will instead result in a reply with an error header.
+        """
+
         ## Receive request
         request_dict = self._receive_request()
         protocol = request_dict['protocol']

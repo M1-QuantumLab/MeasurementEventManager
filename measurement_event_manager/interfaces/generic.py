@@ -41,8 +41,7 @@ class MessageInterface(object):
         protocol_name: Optional[str] = None,
         logger: Optional[logging.Logger] = None,
         ):
-        """Create a generic messaging interface
-
+        """
         The socket and protocol name are optional on *creation*, but are
         required by the time the interface is first used to send messages.
 
@@ -213,8 +212,7 @@ class ReplyInterface(MessageInterface):
 
 
     def __init__(self, server: EventManager, **kwargs):
-        """Create a REP interface for a REQ-REP pattern
-
+        """
         Args:
             server: The object that will use this interface to send messages.
                 Currently only EventManager is supported.
