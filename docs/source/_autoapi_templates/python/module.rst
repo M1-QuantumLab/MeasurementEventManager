@@ -1,6 +1,6 @@
 {% if obj.display %}
    {% if is_own_page %}
-{{ obj.id }}
+{{ obj.short_name }}
 {{ "=" * obj.id|length }}
 
 .. py:module:: {{ obj.name }}
@@ -143,28 +143,28 @@ Functions
 
 
             {% endif %}
-            {% set this_page_children = visible_children|rejectattr("type", "in", own_page_types)|list %}
-            {% if this_page_children %}
-{{ obj.type|title }} Contents
-{{ "-" * obj.type|length }}---------
+            .. {% set this_page_children = visible_children|rejectattr("type", "in", own_page_types)|list %}
+            .. {% if this_page_children %}
+.. {{ obj.type|title }} Contents
+.. {{ "-" * obj.type|length }}---------
 
-               {% for obj_item in this_page_children %}
-{{ obj_item.render()|indent(0) }}
-               {% endfor %}
-            {% endif %}
-         {% endif %}
-      {% endblock %}
-   {% else %}
-.. py:module:: {{ obj.name }}
+..                {% for obj_item in this_page_children %}
+.. {{ obj_item.render()|indent(0) }}
+..                {% endfor %}
+..             {% endif %}
+..          {% endif %}
+..       {% endblock %}
+..    {% else %}
+.. .. py:module:: {{ obj.name }}
 
-      {% if obj.docstring %}
-   .. autoapi-nested-parse::
+..       {% if obj.docstring %}
+..    .. autoapi-nested-parse::
 
-      {{ obj.docstring|indent(6) }}
+..       {{ obj.docstring|indent(6) }}
 
-      {% endif %}
-      {% for obj_item in visible_children %}
-   {{ obj_item.render()|indent(3) }}
-      {% endfor %}
-   {% endif %}
-{% endif %}
+..       {% endif %}
+..       {% for obj_item in visible_children %}
+..    {{ obj_item.render()|indent(3) }}
+..       {% endfor %}
+..    {% endif %}
+.. {% endif %}
