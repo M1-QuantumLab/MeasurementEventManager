@@ -36,3 +36,4 @@ Contents
    About <self>
    design
    usage
+   API reference <autoapi/index>
