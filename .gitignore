@@ -72,6 +72,8 @@ instance/
 docs/_build/
 docs/html
 docs/source/autoapi
+docs/autoapi
+_readthedocs
 
 # PyBuilder
 .pybuilder/
