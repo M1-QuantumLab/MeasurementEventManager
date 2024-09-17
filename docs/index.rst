@@ -31,9 +31,9 @@ Contents
 --------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    About <self>
    design
    usage
-   API reference <autoapi/measurement_event_manager/index>
+   api

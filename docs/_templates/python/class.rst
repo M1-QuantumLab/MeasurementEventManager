@@ -1,6 +1,6 @@
 {% if obj.display %}
    {% if is_own_page %}
-{{ obj.name }}
+{{ obj.short_name }}
 {{ "=" * obj.id | length }}
 
    {% endif %}

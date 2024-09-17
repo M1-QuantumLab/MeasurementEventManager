@@ -19,9 +19,9 @@ processes on the same (or different!) host computer(s).
   completes.
 
 This package provides the core
-:doc:`EventManager <autoapi/measurement_event_manager/event_manager/EventManager>`
+:doc:`EventManager </autoapi/measurement_event_manager/event_manager/EventManager>`
 and
-:doc:`Controller <autoapi/measurement_event_manager/controller/Controller>`
+:doc:`Controller </autoapi/measurement_event_manager/controller/Controller>`
 services.
 
 Here are some publicly-available Guide clients:

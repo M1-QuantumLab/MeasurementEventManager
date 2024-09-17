@@ -21,12 +21,14 @@ version = '0.1.0'
 extensions = [
     'sphinx.ext.duration',
     'sphinx.ext.doctest',
-    'sphinx.ext.autodoc',
+    # 'sphinx.ext.autodoc',
     # 'sphinx.ext.autosummary',
     'autoapi.extension',
     'sphinx.ext.intersphinx',
     ## For Google or NumPy-style docstrings
     'sphinx.ext.napoleon',
+    ## Dark mode for RTD theme
+    'sphinx_rtd_dark_mode',
 ]
 
 # autodoc_default_options = {
@@ -39,7 +41,7 @@ autodoc_typehints = "description"
 # autosummary_generate = True
 autoapi_add_toctree_entry = False
 autoapi_dirs = ['../measurement_event_manager']
-autoapi_keep_files = True
+autoapi_keep_files = False
 autoapi_member_order = "groupwise"
 autoapi_options = [
     "members",
@@ -51,8 +53,7 @@ autoapi_options = [
 autoapi_own_page_level = "class"
 autoapi_python_class_content = "both"
 autoapi_python_use_implicit_namespaces = True
-autoapi_root = "autoapi"
-autoapi_template_dir = "_autoapi_templates"
+autoapi_template_dir = "_templates"
 autoapi_type = "python"
 
 napoleon_google_docstring = True
@@ -65,7 +66,8 @@ intersphinx_mapping = {
 }
 intersphinx_disabled_domains = ['std']
 
-templates_path = ['_autoapi_templates']
+templates_path = ['_templates']
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # -- Options for HTML output
 
