@@ -4,7 +4,8 @@ import os
 import sys
 
 ## Add path to package root
-sys.path.insert(0, os.path.abspath('..'))
+parent = os.path.dirname(os.path.dirname(__file__))
+sys.path.append(parent)
 
 # -- Project information
 
@@ -50,6 +51,7 @@ autoapi_options = [
 autoapi_own_page_level = "class"
 autoapi_python_class_content = "both"
 autoapi_python_use_implicit_namespaces = True
+autoapi_root = "autoapi"
 autoapi_template_dir = "_autoapi_templates"
 autoapi_type = "python"
 

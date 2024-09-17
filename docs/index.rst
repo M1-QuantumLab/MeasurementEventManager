@@ -36,4 +36,4 @@ Contents
    About <self>
    design
    usage
-   API reference <autoapi/index>
+   API reference <autoapi/measurement_event_manager/index>
