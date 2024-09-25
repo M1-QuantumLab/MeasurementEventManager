@@ -41,7 +41,7 @@ autodoc_typehints = "description"
 # autosummary_generate = True
 autoapi_add_toctree_entry = False
 autoapi_dirs = ['../measurement_event_manager']
-autoapi_keep_files = False
+autoapi_keep_files = True
 autoapi_member_order = "groupwise"
 autoapi_options = [
     "members",

@@ -7,6 +7,6 @@ API reference
 =============
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
 
     autoapi/measurement_event_manager/index
