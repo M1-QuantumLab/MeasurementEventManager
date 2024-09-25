@@ -4,6 +4,10 @@ Command-line execution of MEM services
 Function defined here are installed as command-line entry points for the MEM
 services, allowing execution as standalone command-line programs without the
 need to launch a Python interpreter session explicitly.
+
+In the course of regular operation, only the ``mem_server`` application should
+be used, to launch the EventManager service.
+The ``mem_launch_measurement`` application should only be used for debugging.
 """
 
 import argparse
