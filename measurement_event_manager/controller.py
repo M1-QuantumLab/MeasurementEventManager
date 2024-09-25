@@ -1,22 +1,23 @@
-'''
-Control a single measurement at a time
-Delegated to by the MeasurementEventManager
-'''
+"""
+Interfacing between the EventManager and an instrument server application
+"""
 
 from __future__ import unicode_literals
 
 import os
 import logging
 import sys
+from typing import Optional
 
 import yaml
 import zmq
 
-from measurement_event_manager.util import log as mem_logging
-from measurement_event_manager.interfaces.controller import (
+from .util import log as mem_logging
+from .interfaces.controller import (
     ControllerRequestInterface,
 )
-from measurement_event_manager.server_plugins.sleeper import SleeperServer
+from .server_plugins.base import BaseServer
+from .server_plugins.sleeper import SleeperServer
 
 
 ###############################################################################
@@ -25,6 +26,8 @@ from measurement_event_manager.server_plugins.sleeper import SleeperServer
 
 ## ZMQ constants
 MEAS_PROTOCOL = 'MEM-MS/0.1'
+"""The Controller/measurement messaging protocol identifier
+"""
 
 
 ## Magic from StackOverflow
@@ -41,18 +44,32 @@ if sys.version_info[0] < 3:
 
 
 class Controller(object):
-    '''Wrapper to handle measurement control/administration. 
-    
-    Communicates status with main MeasurementEventManager process through ZMQ.
-    '''
+    """A bridge between the MEM ecosystem and the instrument server
+
+    A Controller instance represents the launching of a measurement by the
+    EventManager, and acts as a communications wrapper around the instrument
+    server application.
+    The user is not expected to control or communicate with the Controller
+    directly.
+    """
 
     def __init__(self,
-        endpoint,
-        server_plugin=None,
-        logger=None,
-        zmq_context=None,
+        endpoint: str,
+        server_plugin: Optional[BaseServer] = None,
+        logger: Optional[logging.Logger] = None,
+        zmq_context: Optional[zmq.Context] = None,
         ):
-        
+        """
+        Args:
+            endpoint: The address to communicate with the EventManager.
+            server_plugin: The plugin used to interface with the instrument
+                server application.
+            logger: A logging object; a default one will be created if it is
+                not provided.
+            zmq_context: The ZeroMQ messaging context; one will be created if
+                it is not provided, although this is not recommended.
+        """
+
         ## Initialize logging
         if logger is None:
             logger = logging.getLogger(__name__)
@@ -107,9 +124,9 @@ class Controller(object):
     ##########################
 
 
-    def get_measurement_params(self):
-        '''Request measurement parameters from the parent EventManager
-        '''
+    def get_measurement_params(self) -> None:
+        """Request measurement parameters from the parent EventManager
+        """
 
         ## Request new parameters from the EventManager
         new_params = self._interface.next()
@@ -117,15 +134,15 @@ class Controller(object):
         self._measurement_params = new_params
 
 
-    def confirm_start(self):
-        '''Confirm starting the measurement with the EventManager
-        '''
+    def confirm_start(self) -> None:
+        """Confirm starting the measurement with the EventManager
+        """
         self._interface.start()
 
 
-    def confirm_end(self):
-        '''Confirm the end of the current measurement with the EventManager
-        '''
+    def confirm_end(self) -> None:
+        """Confirm the end of the current measurement with the EventManager
+        """
         self._interface.end(self._measurement_params)
 
 
@@ -133,9 +150,13 @@ class Controller(object):
     #########################
 
 
-    def server_setup(self, **kwargs):
-        '''Initialize instrument connections etc. before running measurement
-        '''
+    def server_setup(self, **kwargs) -> None:
+        """Initialize instrument connections etc. before running measurement
+
+        Args:
+            **kwargs: Passed to the setup() method of the instrument server
+                plugin, in addition to the stored instrument config.
+        """
         self.logger.info('Requesting instrument config from EventManager...')
         instrument_config = self._interface.config()
         self.logger.info('Instrument config received.')
@@ -148,9 +169,12 @@ class Controller(object):
     ########################
 
 
-    def run_measurement(self):
-        '''Run the measurement described by the current parameter set
-        '''
+    def run_measurement(self) -> bool:
+        """Run the measurement described by the current parameter set
+
+        Returns:
+            True if the measurement completed successfully.
+        """
 
         ## Preset fixed instrument values
         self.logger.info('Presetting instrument values...')

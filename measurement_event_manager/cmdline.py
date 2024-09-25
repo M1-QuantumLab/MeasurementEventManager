@@ -1,3 +1,15 @@
+"""
+Command-line execution of MEM services
+
+Function defined here are installed as command-line entry points for the MEM
+services, allowing execution as standalone command-line programs without the
+need to launch a Python interpreter session explicitly.
+
+In the course of regular operation, only the ``mem_server`` application should
+be used, to launch the EventManager service.
+The ``mem_launch_measurement`` application should only be used for debugging.
+"""
+
 import argparse
 import itertools
 import logging
@@ -7,17 +19,12 @@ import sys
 import yaml
 import zmq
 
-from measurement_event_manager.controller import Controller
-from measurement_event_manager.event_manager import EventManager
-import measurement_event_manager.util.log as mem_logging
-from measurement_event_manager.interfaces.guide import (
-    GuideReplyInterface,
-)
-from measurement_event_manager.interfaces.controller import (
-    ControllerReplyInterface,
-)
-
-from measurement_event_manager.server_plugins.pyhegel import PyHegelServer
+from .controller import Controller
+from .event_manager import EventManager
+from .interfaces.controller import ControllerReplyInterface
+from .interfaces.guide import GuideReplyInterface
+from .server_plugins.pyhegel import PyHegelServer
+from .util import log as mem_logging
 
 
 ###############################################################################
@@ -25,18 +32,24 @@ from measurement_event_manager.server_plugins.pyhegel import PyHegelServer
 ###############################################################################
 
 
+#: The default communications protocol
 DEF_PROTOCOL = 'tcp'
+#: The default port for Guide interface communication
 DEF_GUIDE_PORT = '9025'
+#: The default port for Controller interface communication
 DEF_CTRL_PORT = '9026'
+#: The default port for Listener interface communication
 DEF_PUB_PORT = '9027'
 
-## Max server tick time in ms
+#: Default server tick interval (in ms)
+TICK_INTERVAL = 5000
 ## We pass this in to prevent infinite waits on poller.poll, which would result
 ## in being unable to process ctrl-c events on Windows (apparently?)
-TICK_INTERVAL = 5000
 
-## Set the default fetch counter to 0 so there are no nasty surprises
+#: Default fetch counter for new EventManager processes
 DEF_FETCH_COUNTER = 0
+## Set the default fetch counter to 0 so there are no nasty surprises when
+## launching a new process.
 
 
 ###############################################################################
@@ -44,59 +57,81 @@ DEF_FETCH_COUNTER = 0
 ###############################################################################
 
 
-def mem_server():
-    '''Start up a MeasurementEventManager instance
-    '''
+def mem_server() -> None:
+    """Start the EventManager service
+    """
 
     ## Parse command-line arguments
     ###############################
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('instrument_config',
-                        help='Path to the instrument config specification',
-                        action='store',
-                        )
-    parser.add_argument('--guide-port',
-                        help='Port used for Guide communication',
-                        action='store',
-                        default=None)
-    parser.add_argument('--meas-port',
-                        help='Port used for Measurement Controller '
-                             'communcation',
-                        action='store',
-                        default=None)
-    parser.add_argument('--pub-port',
-                        help='Port used to publish information about '
-                             'completed measurements to Listeners',
-                        action='store',
-                        default=None)
-    parser.add_argument('--console-log-level',
-                        help='Logging level for console output',
-                        default='info')
-    parser.add_argument('--file-log-level',
-                        help='Logging level for file output',
-                        default='debug')
-    parser.add_argument('--tick-interval',
-                        help='Set the server tick interval in ms; this sets '
-                             'the maximal interval the poller will wait for '
-                             'incoming messages within a single server tick',
-                        default=TICK_INTERVAL,
-                        type=int,
-                        )
-    parser.add_argument('--fetch-counter',
-                        help='Set the initial value of the fetch counter, '
-                             'indicating how many measurements will be '
-                             'launched when supplied from the queue',
-                        default=DEF_FETCH_COUNTER,
-                        type=int,
-                        )
-    parser.add_argument('--disable-measurement-launch',
-                        help='For debug use only; disables the actual launch '
-                             'of the Controller as a subprocess, which must '
-                             'instead be started manually by the user in a '
-                             'separate thread',
-                        action='store_true',
-                        default=False)
+
+    parser.add_argument(
+        'instrument_config',
+        help='Path to the instrument config specification',
+        action='store',
+    )
+
+    parser.add_argument(
+        '--guide-port',
+        help='Port used for Guide communication',
+        action='store',
+        default=None,
+    )
+
+    parser.add_argument(
+        '--meas-port',
+        help='Port used for Controller communcation',
+        action='store',
+        default=None,
+    )
+
+    parser.add_argument(
+        '--pub-port',
+        help='Port used to publish information about completed measurements to'
+             ' Listener services',
+        action='store',
+        default=None,
+    )
+
+    parser.add_argument(
+        '--console-log-level',
+        help='Logging level for console output',
+        default='info',
+    )
+
+    parser.add_argument(
+        '--file-log-level',
+        help='Logging level for file output',
+        default='debug',
+    )
+
+    parser.add_argument(
+        '--tick-interval',
+        help='Set the server tick interval in ms; this sets the maximal '
+             'interval the poller will wait for incoming messages within a '
+             'single server tick',
+        default=TICK_INTERVAL,
+        type=int,
+    )
+
+    parser.add_argument(
+        '--fetch-counter',
+        help='Set the initial value of the fetch counter, indicating how many '
+             'measurements will be launched when supplied from the queue',
+        default=DEF_FETCH_COUNTER,
+        type=int,
+    )
+
+    parser.add_argument(
+        '--disable-measurement-launch',
+        help='For debug use only; disables the actual launch of the Controller'
+             ' as a subprocess, which must instead be started manually by the '
+             'user in a separate thread',
+        action='store_true',
+        default=False,
+    )
+
     cmd_args = parser.parse_args()
 
 
@@ -179,28 +214,28 @@ def mem_server():
         instrument_config = yaml.safe_load(config_file)
 
     ## Instantiate EventManager
-    mem_server = EventManager(
+    event_manager = EventManager(
         logger=logger,
         controller_endpoint=ctrl_request_endpoint,
         instrument_config=instrument_config,
         fetch_counter=cmd_args.fetch_counter,
-        )
+    )
 
     ## Instantiate interfaces
 
     guide_interface = GuideReplyInterface(
-                                    server=mem_server,
-                                    socket=guide_reply_socket,
-                                    protocol_name='MEM-GR/0.1',
-                                    logger=logger,
-                                    )
+        server=event_manager,
+        socket=guide_reply_socket,
+        protocol_name='MEM-GR/0.1',
+        logger=logger,
+    )
 
     controller_interface = ControllerReplyInterface(
-                                    server=mem_server,
-                                    socket=ctrl_reply_socket,
-                                    protocol_name='MEM-MS/0.1',
-                                    logger=logger,
-                                    )
+        server=event_manager,
+        socket=ctrl_reply_socket,
+        protocol_name='MEM-MS/0.1',
+        logger=logger,
+    )
 
 
     ## Main event loop
@@ -214,9 +249,9 @@ def mem_server():
         ## Attempt to start a new measurement
         ## All the logic of incrementing the fetch counter etc is handled by
         ## the MEM server instance
-        mem_server.new_measurement_trigger(
-                        disable_launch=cmd_args.disable_measurement_launch,
-                        )
+        event_manager.new_measurement_trigger(
+            disable_launch=cmd_args.disable_measurement_launch,
+        )
 
         ## Communications
 
@@ -244,7 +279,7 @@ def mem_server():
 ###############################################################################
 
 
-def mem_launch_measurement():
+def mem_launch_measurement() -> None:
     '''Launch a measurement
 
     Launched automatically by the EventManager during normal operation. Can be
@@ -258,13 +293,19 @@ def mem_launch_measurement():
     ## Command-line arguments
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('socket_endpoint',
-                        help='Endpoint for the socket used to communicate with a MEM instance',
-                        action='store',
-                        )
-    parser.add_argument('--file-log-level',
-                        help='Logging level for file output',
-                        default='info')
+
+    parser.add_argument(
+        'socket_endpoint',
+        help='Endpoint for the socket used to communicate with a MEM instance',
+        action='store',
+    )
+
+    parser.add_argument(
+        '--file-log-level',
+        help='Logging level for file output',
+        default='info',
+    )
+
     cmd_args = parser.parse_args()
 
 

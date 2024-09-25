@@ -1,20 +1,19 @@
-'''
-Instrument server wrapper for pyHegel by Christian Lupien (Universite de
+"""
+Instrument server wrapper for pyHegel by Christian Lupien (Université de
 Sherbrooke).
 
 Requires the pyHegel module to be installed; contact Christian for a copy.
-'''
+"""
 
-from collections.abc import Mapping
 import os
 import time
-
-import yaml
+from typing import Mapping
 
 import pyHegel.commands as ph_cmd
 import pyHegel.instruments as instruments
 
-from measurement_event_manager.server_plugins.base import BaseServer
+from measurement_event_manager.measurement_params import MeasurementParams
+from .base import BaseServer
 
 
 ###############################################################################
@@ -23,16 +22,11 @@ from measurement_event_manager.server_plugins.base import BaseServer
 
 
 class PyHegelServer(BaseServer):
+    """An instrument server plugin for pyHegel
+    """
 
 
-    def __init__(self, **kwargs):
-        ## Call the base class constructor
-        super(PyHegelServer, self).__init__(**kwargs)
-
-
-    def setup(self, instrument_config):
-        '''Set up the pyHegel instrument registry according to the config
-        '''
+    def setup(self, instrument_config: Mapping) -> None:
 
         ## Set up instruments with args in config (addresses, etc.)
         self.logger.info('Setting up instruments...')
@@ -111,9 +105,8 @@ class PyHegelServer(BaseServer):
         ## for now this should work!
 
 
-    def preset(self, params):
-        '''Preset single-value instrument parameters before the sweep starts
-        '''
+    def preset(self, params: MeasurementParams) -> None:
+
         ## Iterate over instruments in the setvals
         for instr_name, instr_setvals in params.setvals.items():
             ## Get the instrument object
@@ -127,9 +120,7 @@ class PyHegelServer(BaseServer):
                                                         new_value))
 
 
-    def measure(self, params):
-        '''Carry out the measurement using pyHegel sweep
-        '''
+    def measure(self, params: MeasurementParams) -> str:
 
         ## Get the output device(s)
         output_device_list = []

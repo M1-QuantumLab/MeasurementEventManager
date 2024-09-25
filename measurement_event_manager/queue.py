@@ -1,12 +1,16 @@
-'''
-A queue for storing measurement parameters, managed by the 
-MeasurementEventManager.
-'''
+"""
+A queue for storing measurement definitions
+
+The user does not interact with the queue directly; it is instead managed by
+the EventManager instance.
+"""
 
 import collections
 import copy
+from typing import Iterable, List, Optional
 
-from measurement_event_manager.util.errors import QueueEmptyError
+from .measurement_params import MeasurementParams
+from .util.errors import QueueEmptyError
 
 
 ###############################################################################
@@ -15,6 +19,8 @@ from measurement_event_manager.util.errors import QueueEmptyError
 
 
 class Queue(object):
+    """
+    """
 
     ## Init and setup
     #################
@@ -26,7 +32,7 @@ class Queue(object):
     ## Special methods
     ##################
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.queue)
 
 
@@ -34,17 +40,26 @@ class Queue(object):
     ###################
 
 
-    def add(self, measurement_params):
-        '''Add a measurement to the end of the queue
-        '''
+    def add(self, measurement_params: MeasurementParams) -> int:
+        """Add a measurement to the end of the queue
+
+        Args:
+            measurement_params: Measurement specification to be added.
+
+        Returns:
+            The index in the queue at which the measurement was added.
+        """
         self.queue.append(measurement_params)
         ## Return the index at which the measurement was added
         return len(self.queue)-1
 
 
-    def info(self):
-        '''Give information about the queue to the client
-        '''
+    def info(self) -> List[MeasurementParams]:
+        """Give information about the queue to the client
+
+        Returns:
+            The current state of the queue as a list
+        """
         ## Here, we want to ensure the client can't modify the queue, so we
         ## pass a deepcopy just to be safe.
         ## The client is responsible for displaying the information in the way
@@ -54,9 +69,22 @@ class Queue(object):
         return list(copy.deepcopy(self.queue))
 
 
-    def remove(self, index_list=None):
-        '''Remove the measurement at the specified index
-        '''
+    def remove(self, index_list: Optional[Iterable] = None) -> List[int]:
+        """Remove the measurements at the specified indices
+
+        Args:
+            index_list: A list of valid positive integer indices. Validation is
+                expected to be carried out on the client side, and invalid
+                indices will be silently dropped.
+
+        Returns:
+            A list of the indices that were successfully removed from the
+                queue.
+
+        Raises:
+            QueueEmptyError: If the queue is empty.
+        """
+
         ## First, ensure there are items in the queue to delete
         if len(self.queue) == 0:
             raise QueueEmptyError
@@ -78,15 +106,21 @@ class Queue(object):
         return deleted_indices
 
 
-    def pop_next(self):
-        '''Pop off and return the first measurement in the queue
-        '''
+    def pop_next(self) -> MeasurementParams:
+        """Get the first measurement, removing it from the queue
+
+        Returns:
+            The measurement specification
+
+        Raises:
+            QueueEmptyError: No measurement can be fetched if the queue is
+                empty.
+        """
+
         try:
             meas = self.queue.popleft()
         except IndexError:
             ## In this case, as we are always trying to fetch the first
             ## element, an IndexError can only occur if the queue is empty.
             raise QueueEmptyError
-        else:
-            return meas
-
+        return meas

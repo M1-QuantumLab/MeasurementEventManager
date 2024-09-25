@@ -14,12 +14,18 @@ ecosystem.
 ## So we definitely don't want to be subclassing those!
 
 class NetworkError(RuntimeError):
+    """An error in the MEM communication layer
+    """
     pass
 
 class SocketUnavailableError(NetworkError):
+    """The requested ZeroMQ socket is unavailable
+    """
     pass
 
 class ConnectionTimeoutError(NetworkError):
+    """The associated ZeroMQ socket is taking too long to respond
+    """
     pass
 
 
@@ -29,12 +35,18 @@ class ConnectionTimeoutError(NetworkError):
 
 
 class ServerError(RuntimeError):
+    """An unspecified error has occurred on the server-side
+    """
     pass
 
 class MessagingError(RuntimeError):
+    """The received message is inappropriate or malformed
+    """
     pass
 
 class HeaderError(MessagingError):
+    """The received message contains the wrong header
+    """
     pass
 
 
@@ -50,5 +62,7 @@ class HeaderError(MessagingError):
 ## So instead, we will subclass it from LookupError, which is the parent of
 ## IndexError.
 class QueueEmptyError(LookupError):
+    """The queue is empty, resulting in an invalid lookup
+    """
     pass
 
