@@ -1,0 +1,57 @@
+[build-system]
+requires = [
+  "setuptools>=65.0",
+  "wheel",
+]
+build-backend = "setuptools.build_meta"
+
+###############################################################################
+
+[project]
+name = "measurement_event_manager"
+version = "0.4.2"
+description = "Measurement queuing and processing in experimental science"
+# license = { file = "LICENSE" } # Not sure how to deal with LGPLv3 (two files)
+authors = [{ name = "Sam Wolski", email = "samuel.wolski@usherbrooke.ca" }]
+readme = "README.md"
+
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Software Development :: Libraries",
+]
+
+requires-python = ">=3.9"
+
+dependencies = [
+  "pyyaml",
+  "pyzmq",
+]
+
+###############################################################################
+
+[project.scripts]
+mem_server = "measurement_event_manager.cmdline:mem_server"
+mem_launch_measurement = "measurement_event_manager.cmdline:mem_launch_measurement"
+
+[project.urls]
+Homepage = "https://github.com/M1-QuantumLab/MeasurementEventManager"
+Documentation = "https://measurementeventmanager.readthedocs.io/en/latest/"
+
+[project.optional-dependencies]
+docs = [
+  "sphinx",
+  "sphinx_rtd_theme==3.0.0rc1",
+  "sphinx-notfound-page",
+  "sphinx-autoapi",
+  "sphinx-rtd-dark-mode",
+]
+
