@@ -1,6 +1,7 @@
 [build-system]
 requires = [
   "setuptools>=65.0",
+  "setuptools-scm>=8",
   "wheel",
 ]
 build-backend = "setuptools.build_meta"
@@ -8,8 +9,8 @@ build-backend = "setuptools.build_meta"
 ###############################################################################
 
 [project]
+dynamic = ["version"]
 name = "measurement_event_manager"
-version = "0.4.2"
 description = "Measurement queuing and processing in experimental science"
 # license = { file = "LICENSE" } # Not sure how to deal with LGPLv3 (two files)
 authors = [{ name = "Sam Wolski", email = "samuel.wolski@usherbrooke.ca" }]
@@ -55,3 +56,7 @@ docs = [
   "sphinx-rtd-dark-mode",
 ]
 
+###############################################################################
+
+[tool.setuptools_scm]
+write_to = "measurement_event_manager/_version.py"
