@@ -8,7 +8,7 @@ import os
 import subprocess
 from typing import Optional
 
-from .measurement_params import MeasurementParams
+from .measurement import Measurement
 from .queue import Queue
 from .util.errors import QueueEmptyError
 
@@ -87,7 +87,7 @@ class EventManager:
         self.set_fetch_counter(fetch_counter)
 
         ## Active measurement
-        self._current_measurement: MeasurementParams = None
+        self._current_measurement: Measurement = None
 
         ## Declare variables for later
         self._instrument_config = instrument_config
@@ -203,7 +203,7 @@ class EventManager:
         return True
 
 
-    def get_current_measurement(self) -> MeasurementParams:
+    def get_current_measurement(self) -> Measurement:
         """Get the active measurement
 
         Returns:
@@ -335,7 +335,7 @@ class EventManager:
 
 
     def add_to_queue(self,
-        measurement_or_iterable: Iterable[MeasurementParams]|MeasurementParams,
+        measurement_or_iterable: Iterable[Measurement]|Measurement,
         ) -> int|list[int]:
         """Add measurement(s) to the queue
 
@@ -370,7 +370,7 @@ class EventManager:
         return removed_indices
 
 
-    def get_queue_elements(self) -> list[MeasurementParams]:
+    def get_queue_elements(self) -> list[Measurement]:
         """Get the measurements in the queue
 
         Returns:

@@ -10,7 +10,7 @@ import collections
 import copy
 from typing import Optional
 
-from .measurement_params import MeasurementParams
+from .measurement import Measurement
 from .util.errors import QueueEmptyError
 
 
@@ -41,7 +41,7 @@ class Queue:
     ###################
 
 
-    def add(self, measurement_params: MeasurementParams) -> int:
+    def add(self, measurement_params: Measurement) -> int:
         """Add a measurement to the end of the queue
 
         Args:
@@ -55,7 +55,7 @@ class Queue:
         return len(self.queue)-1
 
 
-    def info(self) -> list[MeasurementParams]:
+    def info(self) -> list[Measurement]:
         """Give information about the queue to the client
 
         Returns:
@@ -107,7 +107,7 @@ class Queue:
         return deleted_indices
 
 
-    def pop_next(self) -> MeasurementParams:
+    def pop_next(self) -> Measurement:
         """Get the first measurement, removing it from the queue
 
         Returns:

@@ -7,11 +7,11 @@ instances, according to the MEM-MS protocol specification.
 
 import json
 
-from measurement_event_manager import measurement_params
 from measurement_event_manager.util.errors import (
     ServerError,
     HeaderError,
 )
+from ..measurement import Measurement, from_json
 from .generic import (
     RequestInterface,
     ReplyInterface,
@@ -60,7 +60,7 @@ class ControllerRequestInterface(RequestInterface):
             raise HeaderError(reply_dict['header'])
 
 
-    def next(self) -> measurement_params.MeasurementParams:
+    def next(self) -> Measurement:
         """Get the definition of the next measurement to be run
 
         Returns:
@@ -76,7 +76,7 @@ class ControllerRequestInterface(RequestInterface):
         ## Parse reply
         if reply_dict['header'] == 'NXT':
             ## Convert to a MeasurementParams object
-            params = measurement_params.from_json(reply_dict['body'][0])
+            params = from_json(reply_dict['body'][0])
             return params
         elif reply_dict['header'] == 'ERR':
             raise ServerError(reply_dict['body'])
@@ -106,7 +106,7 @@ class ControllerRequestInterface(RequestInterface):
             raise HeaderError(reply_dict['header'])
 
 
-    def end(self, params: measurement_params.MeasurementParams) -> bool:
+    def end(self, params: Measurement) -> bool:
         """Declare the end of the current measurement to the server
 
         Args:

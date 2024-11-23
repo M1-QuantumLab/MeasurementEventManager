@@ -12,7 +12,7 @@ import time
 import pyHegel.commands as ph_cmd
 import pyHegel.instruments as instruments
 
-from measurement_event_manager.measurement_params import MeasurementParams
+from ..measurement import Measurement
 from .base import BaseServer
 
 
@@ -105,7 +105,7 @@ class PyHegelServer(BaseServer):
         ## for now this should work!
 
 
-    def preset(self, params: MeasurementParams) -> None:
+    def preset(self, params: Measurement) -> None:
 
         ## Iterate over instruments in the setvals
         for instr_name, instr_setvals in params.setvals.items():
@@ -120,7 +120,7 @@ class PyHegelServer(BaseServer):
                                                         new_value))
 
 
-    def measure(self, params: MeasurementParams) -> str:
+    def measure(self, params: Measurement) -> str:
 
         ## Get the output device(s)
         output_device_list = []

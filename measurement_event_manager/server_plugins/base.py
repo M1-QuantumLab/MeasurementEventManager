@@ -14,7 +14,7 @@ from collections.abc import Mapping
 import logging
 from typing import Optional
 
-from measurement_event_manager.measurement_params import MeasurementParams
+from ..measurement import Measurement
 
 
 ###############################################################################
@@ -47,7 +47,7 @@ class BaseServer:
         pass
 
 
-    def preset(self, params: MeasurementParams) -> None:
+    def preset(self, params: Measurement) -> None:
         """Set all fixed instrument values before starting the measurement
 
         Args:
@@ -56,7 +56,7 @@ class BaseServer:
         pass
 
 
-    def measure(self, params: MeasurementParams) -> str:
+    def measure(self, params: Measurement) -> str:
         """Execute the measurement based on the passed-in parameters object
 
         Returns:

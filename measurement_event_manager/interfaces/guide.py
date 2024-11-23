@@ -10,12 +10,12 @@ a re-implementation of the messaging inteface, by using an instance of the Guide
 
 from typing import Iterable
 
-from measurement_event_manager import measurement_params
 from measurement_event_manager.util.errors import (
     QueueEmptyError,
     ServerError,
     HeaderError,
 )
+from ..measurement import Measurement, from_json
 from .generic import (
     RequestInterface,
     ReplyInterface,
@@ -41,7 +41,7 @@ class GuideRequestInterface(RequestInterface):
     """
 
 
-    def add(self, params: measurement_params.MeasurementParams) -> list[int]:
+    def add(self, params: Measurement) -> list[int]:
         """Add a measurement definition to the queue
 
         Args:
@@ -69,7 +69,7 @@ class GuideRequestInterface(RequestInterface):
             raise HeaderError(reply_dict['header'])
 
 
-    def query(self) -> list[measurement_params.MeasurementParams]:
+    def query(self) -> list[Measurement]:
         """Query the state of the queue
 
         Returns:
@@ -84,7 +84,7 @@ class GuideRequestInterface(RequestInterface):
         if reply_dict['header'] == 'QUE':
             queue_json = reply_dict['body']
             ## Convert to MeasurementParams objects
-            queue_mp = [measurement_params.from_json(mp) for mp in queue_json]
+            queue_mp = [from_json(mp) for mp in queue_json]
             return queue_mp
         elif reply_dict['header'] == 'ERR':
             raise ServerError(reply_dict['body'])
@@ -238,7 +238,7 @@ class GuideReplyInterface(ReplyInterface):
             self.logger.info('ADD request received.')
             response_header = 'ADD'
             ## Convert JSON specs to MeasurementParams objects
-            mp_list = [measurement_params.from_json(mm) for mm in body]
+            mp_list = [from_json(mm) for mm in body]
             ## Add to the measurement queue
             added_indices = self._server.add_to_queue(mp_list)
             ## Add the index to the response body

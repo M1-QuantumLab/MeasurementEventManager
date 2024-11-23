@@ -4,7 +4,7 @@ A do-nearly-nothing instrument server plugin
 
 import time
 
-from measurement_event_manager.measurement_params import MeasurementParams
+from ..measurement import Measurement
 from .base import BaseServer
 
 
@@ -29,13 +29,13 @@ class SleeperServer(BaseServer):
     """
 
 
-    def preset(self, params: MeasurementParams) -> None:
+    def preset(self, params: Measurement) -> None:
 
         ## Log parameter values
         self._log_params(params)
 
 
-    def measure(self, params: MeasurementParams) -> str:
+    def measure(self, params: Measurement) -> str:
 
         ## Wait
         self.logger.info('Starting imitation measurement')
@@ -46,7 +46,7 @@ class SleeperServer(BaseServer):
         return ""
 
 
-    def _log_params(self, params: MeasurementParams) -> None:
+    def _log_params(self, params: Measurement) -> None:
         """Log the parameters stored in the measurement definition
 
         Args:
