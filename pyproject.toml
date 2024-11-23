@@ -41,8 +41,8 @@ dependencies = [
 ###############################################################################
 
 [project.scripts]
-mem_server = "measurement_event_manager.cmdline:mem_server"
-mem_launch_measurement = "measurement_event_manager.cmdline:mem_launch_measurement"
+mem_server = "measurement_event_manager.cmdline.mem_server:main"
+mem_launch_measurement = "measurement_event_manager.cmdline.mem_launch_measurement:main"
 
 [project.urls]
 Homepage = "https://github.com/M1-QuantumLab/MeasurementEventManager"
