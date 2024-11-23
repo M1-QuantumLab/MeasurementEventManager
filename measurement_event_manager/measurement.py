@@ -145,6 +145,47 @@ class Measurement:
 		return config_dict
 
 
+	def pretty_print(self) -> str:
+		"""Pretty multi-line display, as a single string
+		"""
+
+		## Start with submitter information
+		print_str = f"Submitter: {self.submitter}\n"
+
+		## Metadata
+		print_str += "Metadata:\n"
+		for meta_key, meta_val in self.metadata.items():
+			print_str += f"    {meta_key:-<20}: {meta_val}\n"
+
+		## Outputs
+		print_str += "Outputs:\n"
+		for out_key, out_val in self.output.items():
+			if out_key == "channels":
+				channels_title = "Channels"
+				print_str += f"    {channels_title}:\n"
+				for channel_dict in out_val:
+					print_str += f"    -- {channel_dict}\n"
+			else:
+				print_str += f"    {out_key:-<20}: {out_val}\n"
+
+		## Setvals
+		print_str += "Setvals:\n"
+		for instr_name, instr_vals in self.setvals.items():
+			print_str += f"--> {instr_name}:\n"
+			for param_name, param_val in instr_vals.items():
+				print_str += f"      {param_name:-<20}: {param_val}\n"
+
+		## Sweeps
+		if self.sweep:
+			print_str += "Sweep: (Dims are SLOW to FAST)\n"
+			for dim_index, sweep_dim in enumerate(self.sweep):
+				print_str += f"--> Dim {dim_index}:\n"
+				for param_name, param_val in sweep_dim.items():
+					print_str += f"      {param_name:-<20}: {param_val}\n"
+
+		return print_str
+
+
 	## Measurement administration
 	#############################
 
