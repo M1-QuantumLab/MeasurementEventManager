@@ -18,6 +18,7 @@ from alive_progress import alive_bar
 import yaml
 import zmq
 
+from measurement_event_manager import _const
 from measurement_event_manager.event_manager import EventManager
 from measurement_event_manager.interfaces.controller import ControllerReplyInterface
 from measurement_event_manager.interfaces.guide import GuideReplyInterface
@@ -28,15 +29,6 @@ from measurement_event_manager.util import log as mem_logging
 ## Default values
 ###############################################################################
 
-
-#: The default communications protocol
-DEF_PROTOCOL = 'tcp'
-#: The default port for Guide interface communication
-DEF_GUIDE_PORT = '9025'
-#: The default port for Controller interface communication
-DEF_CTRL_PORT = '9026'
-#: The default port for Listener interface communication
-DEF_PUB_PORT = '9027'
 
 #: Default server tick interval (in ms)
 TICK_INTERVAL = 5000
@@ -159,8 +151,8 @@ def main() -> None:
 	if cmd_args.guide_port is not None:
 		guide_port = str(cmd_args.guide_port)
 	else:
-		guide_port = DEF_GUIDE_PORT
-	guide_reply_endpoint = '{}://*:{}'.format(DEF_PROTOCOL, guide_port)
+		guide_port = _const.DEF_GUIDE_PORT
+	guide_reply_endpoint = f'{_const.DEF_PROTOCOL}://*:{guide_port}'
 	## Guide reply socket
 	guide_reply_socket = context.socket(zmq.REP)
 	guide_reply_socket.bind(guide_reply_endpoint)
@@ -170,8 +162,8 @@ def main() -> None:
 	if cmd_args.meas_port is not None:
 		ctrl_port = str(cmd_args.meas_port)
 	else:
-		ctrl_port = DEF_CTRL_PORT
-	ctrl_reply_endpoint = '{}://*:{}'.format(DEF_PROTOCOL, ctrl_port)
+		ctrl_port = _const.DEF_CTRL_PORT
+	ctrl_reply_endpoint = f'{_const.DEF_PROTOCOL}://*:{ctrl_port}'
 	## Controller reply socket
 	ctrl_reply_socket = context.socket(zmq.REP)
 	ctrl_reply_socket.bind(ctrl_reply_endpoint)
@@ -181,14 +173,14 @@ def main() -> None:
 
 	## Controller request address
 	## Passed to the instatiation function for the spawned Controller process
-	ctrl_request_endpoint = '{}://localhost:{}'.format(DEF_PROTOCOL, ctrl_port)
+	ctrl_request_endpoint = f'{_const.DEF_PROTOCOL}://localhost:{ctrl_port}'
 
 	## Listener broadcast address
 	if cmd_args.pub_port is not None:
 		pub_port = str(cmd_args.pub_port)
 	else:
-		pub_port = DEF_PUB_PORT
-	listener_pub_endpoint = '{}://*:{}'.format(DEF_PROTOCOL, pub_port)
+		pub_port = _const.DEF_PUB_PORT
+	listener_pub_endpoint = f'{_const.DEF_PROTOCOL}://*:{pub_port}'
 	## Listener broadcast socket
 	listener_pub_socket = context.socket(zmq.PUB)
 	listener_pub_socket.bind(listener_pub_endpoint)

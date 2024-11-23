@@ -14,20 +14,6 @@ from .util.errors import QueueEmptyError
 
 
 ###############################################################################
-## Defaults and definitions
-###############################################################################
-
-
-GUIDE_PROTOCOL = "MEM-GR/0.1"
-"""The Guide messaging protocol identifier
-"""
-
-MEAS_PROTOCOL = 'MEM-MS/0.1'
-"""The Controller/measurement messaging protocol identifier
-"""
-
-
-###############################################################################
 ## Main MEM class
 ###############################################################################
 

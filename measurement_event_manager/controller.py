@@ -18,16 +18,6 @@ from .server_plugins.sleeper import SleeperServer
 
 
 ###############################################################################
-## Definitions and setup
-###############################################################################
-
-## ZMQ constants
-MEAS_PROTOCOL = 'MEM-MS/0.1'
-"""The Controller/measurement messaging protocol identifier
-"""
-
-
-###############################################################################
 ## MeasurementController class
 ###############################################################################
 
