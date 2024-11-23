@@ -11,11 +11,11 @@ The ``mem_launch_measurement`` application should only be used for debugging.
 """
 
 import argparse
-import itertools
 import logging
 import os
 import sys
 
+from alive_progress import alive_bar
 import yaml
 import zmq
 
@@ -243,34 +243,47 @@ def mem_server() -> None:
 
     logger.info('Running main event loop.')
 
-    for server_tick in itertools.count():
-        logger.debug('Server tick {}'.format(server_tick))
+    spinner_kwargs = {
+        "title": "Server listening",
+        "bar": False,
+        "enrich_print": False,
+        "monitor": False,
+        "elapsed": False,
+        "stats": False,
+    }
 
-        ## Attempt to start a new measurement
-        ## All the logic of incrementing the fetch counter etc is handled by
-        ## the MEM server instance
-        event_manager.new_measurement_trigger(
-            disable_launch=cmd_args.disable_measurement_launch,
-        )
+    with alive_bar(**spinner_kwargs) as spinner:
+        while True:
 
-        ## Communications
+            ## Animate spinner
+            ## pylint: disable-next=not-callable
+            spinner()
 
-        ## Get poll on all sockets
-        logger.info('Listening for messages on all sockets')
-        poll_all = dict(poller.poll(cmd_args.tick_interval))
+            ## Attempt to start a new measurement
+            ## All the logic of incrementing the fetch counter etc is handled by
+            ## the MEM server instance
+            event_manager.new_measurement_trigger(
+                disable_launch=cmd_args.disable_measurement_launch,
+            )
 
-        ## Identify incoming request by socket, and pass to the appropriate
-        ## interface along with the MEM server object
+            ## Communications
 
-        if poll_all.get(guide_reply_socket, None) == zmq.POLLIN:
-            logger.debug('Incoming message on guide reply socket')
-            guide_interface.process_request()
+            ## Get poll on all sockets
+            # logger.info('Listening for messages on all sockets')
+            poll_all = dict(poller.poll(cmd_args.tick_interval))
 
-        elif poll_all.get(ctrl_reply_socket, None) == zmq.POLLIN:
-            logger.debug('Incoming message on controller reply socket')
-            controller_interface.process_request()
+            ## Identify incoming request by socket, and pass to the appropriate
+            ## interface along with the MEM server object
 
-        ## End of main event loop
+            if poll_all.get(guide_reply_socket, None) == zmq.POLLIN:
+                logger.debug('Incoming message on guide reply socket')
+                guide_interface.process_request()
+
+            elif poll_all.get(ctrl_reply_socket, None) == zmq.POLLIN:
+                logger.debug('Incoming message on controller reply socket')
+                controller_interface.process_request()
+
+            ## End of main event loop
 
 
 

@@ -159,7 +159,7 @@ class EventManager(object):
         ## If the fetch counter is at 0, we cannot attempt to start a new
         ## measurement
         elif self._fetch_counter == 0:
-            self.logger.info('Fetch counter is at 0; skipping fetch and'
+            self.logger.debug('Fetch counter is at 0; skipping fetch and'
                              ' waiting for increase')
             return False
 
