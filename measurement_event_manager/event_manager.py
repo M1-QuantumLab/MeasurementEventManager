@@ -2,15 +2,11 @@
 The main MeasurementEventManager class.
 """
 
-## Python 3+ introduced the abc submodule in collections
-try:
-    from collections.abc import Mapping
-except ImportError:
-    from collections import Mapping
+from collections.abc import Mapping, Iterable
 import logging
 import os
 import subprocess
-from typing import List, Iterable, Optional
+from typing import Optional
 
 from .measurement_params import MeasurementParams
 from .queue import Queue
@@ -36,7 +32,7 @@ MEAS_PROTOCOL = 'MEM-MS/0.1'
 ###############################################################################
 
 
-class EventManager(object):
+class EventManager:
     """The main 'server' class of the MEM ecosystem
 
     The EventManager is responsible for:
@@ -233,7 +229,7 @@ class EventManager(object):
         self._current_measurement = None
 
 
-    def measurement_finished(self, received_message: List) -> None:
+    def measurement_finished(self, received_message: Iterable) -> None:
         """Indicate that the active measurement has finished
 
         Pipes the received measurement data to the publisher socket.
@@ -340,7 +336,7 @@ class EventManager(object):
 
     def add_to_queue(self,
         measurement_or_iterable: Iterable[MeasurementParams]|MeasurementParams,
-        ) -> int|List[int]:
+        ) -> int|list[int]:
         """Add measurement(s) to the queue
 
         Args:
@@ -361,7 +357,7 @@ class EventManager(object):
             return new_index
 
 
-    def remove_from_queue(self, index_list: Iterable[int]) -> List[int]:
+    def remove_from_queue(self, index_list: Iterable[int]) -> list[int]:
         """Remove measurement(s) from the queue by index
 
         Args:
@@ -374,7 +370,7 @@ class EventManager(object):
         return removed_indices
 
 
-    def get_queue_elements(self) -> List[MeasurementParams]:
+    def get_queue_elements(self) -> list[MeasurementParams]:
         """Get the measurements in the queue
 
         Returns:

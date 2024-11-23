@@ -10,15 +10,16 @@ Here, the base class BaseServer is provided, which should be inherited from
 for the user's custom plugin for specific software.
 """
 
+from collections.abc import Mapping
 import logging
-from typing import Optional, Mapping
+from typing import Optional
 
 from measurement_event_manager.measurement_params import MeasurementParams
 
 
 ###############################################################################
 
-class BaseServer(object):
+class BaseServer:
     """Abstract base class for instrument server plugins
     """
 

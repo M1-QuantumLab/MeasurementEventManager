@@ -3,10 +3,11 @@ Data structures for specifying, storing, and translating measurement
 definitions.
 """
 
+from collections.abc import Mapping, Iterable
 import copy
 import datetime
 import json
-from typing import Mapping, Optional, Sequence
+from typing import Optional
 
 
 ###############################################################################
@@ -14,7 +15,7 @@ from typing import Mapping, Optional, Sequence
 ###############################################################################
 
 
-class MeasurementParams(object):
+class MeasurementParams:
     """A container class for a measurement specification
     """
 
@@ -23,7 +24,7 @@ class MeasurementParams(object):
         metadata: Optional[Mapping] = None,
         output: Optional[Mapping] = None,
         setvals: Optional[Mapping] = None,
-        sweep: Optional[Sequence[Mapping] | Mapping] = None,
+        sweep: Optional[Iterable[Mapping] | Mapping] = None,
         ):
         """
         The output, setvals, and sweep containers must describe the data in the
@@ -215,7 +216,7 @@ class _MPEncoder(json.JSONEncoder):
 
 ISO_STRPTIME = '%Y-%m-%dT%H:%M:%S.%f'
 
-def _mp_from_json(json_dict: dict) -> dict:
+def _mp_from_json(json_dict: Mapping) -> dict:
     '''object hook function for json.loads; use from_json() as a user!
     '''
 

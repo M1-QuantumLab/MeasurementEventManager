@@ -8,7 +8,7 @@ Customization of the Guide frontend can thus be carried out without requiring
 a re-implementation of the messaging inteface, by using an instance of the GuideRequestInterface provided here as an attribute.
 """
 
-from typing import Iterable, List
+from typing import Iterable
 
 from measurement_event_manager import measurement_params
 from measurement_event_manager.util.errors import (
@@ -41,7 +41,7 @@ class GuideRequestInterface(RequestInterface):
     """
 
 
-    def add(self, params: measurement_params.MeasurementParams) -> List[int]:
+    def add(self, params: measurement_params.MeasurementParams) -> list[int]:
         """Add a measurement definition to the queue
 
         Args:
@@ -69,7 +69,7 @@ class GuideRequestInterface(RequestInterface):
             raise HeaderError(reply_dict['header'])
 
 
-    def query(self) -> List[measurement_params.MeasurementParams]:
+    def query(self) -> list[measurement_params.MeasurementParams]:
         """Query the state of the queue
 
         Returns:
@@ -112,7 +112,7 @@ class GuideRequestInterface(RequestInterface):
             raise HeaderError(reply_dict['header'])
 
 
-    def remove(self, index_list: Iterable[int]) -> List[int]:
+    def remove(self, index_list: Iterable[int]) -> list[int]:
         """Remove measurements from the queue
 
         Items to remove are specified by index.

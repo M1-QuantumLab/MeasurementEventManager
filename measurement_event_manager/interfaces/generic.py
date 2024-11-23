@@ -6,8 +6,9 @@ Custom Guides, Controllers, and Listeners should subclass from their
 corresponding specific messaging interface classes.
 '''
 
+from collections.abc import Sequence
 import logging
-from typing import Optional, Sequence
+from typing import Optional
 
 import zmq
 
@@ -27,7 +28,7 @@ from measurement_event_manager.util.errors import (
 ###########################
 
 
-class MessageInterface(object):
+class MessageInterface:
     """Generic MEM messaging interface
 
     A wrapper around Python ZeroMQ functions to handle (un)packing messages

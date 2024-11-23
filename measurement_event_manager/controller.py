@@ -2,11 +2,8 @@
 Interfacing between the EventManager and an instrument server application
 """
 
-from __future__ import unicode_literals
-
 import os
 import logging
-import sys
 from typing import Optional
 
 import yaml
@@ -30,20 +27,12 @@ MEAS_PROTOCOL = 'MEM-MS/0.1'
 """
 
 
-## Magic from StackOverflow
-## Allegedly only necessary for Python 2.7
-if sys.version_info[0] < 3:
-    def unicode_repr(self, data):
-        return self.represent_str(data.encode('utf-8'))
-    yaml.representer.Representer.add_representer(unicode, unicode_repr)
-
-
 ###############################################################################
 ## MeasurementController class
 ###############################################################################
 
 
-class Controller(object):
+class Controller:
     """A bridge between the MEM ecosystem and the instrument server
 
     A Controller instance represents the launching of a measurement by the

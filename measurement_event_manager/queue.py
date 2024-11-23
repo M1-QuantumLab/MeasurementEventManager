@@ -5,9 +5,10 @@ The user does not interact with the queue directly; it is instead managed by
 the EventManager instance.
 """
 
+from collections.abc import Iterable
 import collections
 import copy
-from typing import Iterable, List, Optional
+from typing import Optional
 
 from .measurement_params import MeasurementParams
 from .util.errors import QueueEmptyError
@@ -18,7 +19,7 @@ from .util.errors import QueueEmptyError
 ###############################################################################
 
 
-class Queue(object):
+class Queue:
     """
     """
 
@@ -54,7 +55,7 @@ class Queue(object):
         return len(self.queue)-1
 
 
-    def info(self) -> List[MeasurementParams]:
+    def info(self) -> list[MeasurementParams]:
         """Give information about the queue to the client
 
         Returns:
@@ -69,7 +70,7 @@ class Queue(object):
         return list(copy.deepcopy(self.queue))
 
 
-    def remove(self, index_list: Optional[Iterable] = None) -> List[int]:
+    def remove(self, index_list: Optional[Iterable] = None) -> list[int]:
         """Remove the measurements at the specified indices
 
         Args:
