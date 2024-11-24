@@ -4,7 +4,7 @@ Measurement definitions
 
 Measurements are defined using plain-text key-value (PTKV) data which is
 then packaged in
-:doc:`MeasurementParams </autoapi/measurement_event_manager/measurement_params/MeasurementParams>`
+:doc:`Measurement </autoapi/measurement_event_manager/measurement/Measurement>`
 objects.
 
 .. note::
