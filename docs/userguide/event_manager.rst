@@ -7,6 +7,8 @@ It should be started manually by the user on the experiment control computer,
 and remain running for the duration of the session.
 
 
+.. _event-manager-launch:
+
 Launch
 ------
 

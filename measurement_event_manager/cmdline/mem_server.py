@@ -1,13 +1,13 @@
 """
-Entry point 
+Command-line invocation of the EventManager service
 
-Function defined here are installed as command-line entry points for the MEM
-services, allowing execution as standalone command-line programs without the
-need to launch a Python interpreter session explicitly.
+See :ref:`event-manager-launch` for information about usage, and invoke with
 
-In the course of regular operation, only the ``mem_server`` application should
-be used, to launch the EventManager service.
-The ``mem_launch_measurement`` application should only be used for debugging.
+::
+
+   $ mem_server --help
+
+to see the list of arguments.
 """
 
 import argparse

@@ -1,3 +1,15 @@
+"""
+Command-line launch of an individual measurement
+
+.. warning::
+   This is *not* intended for user invocation during normal operation!
+
+The intended behaviour is for the EventManager to spawn a Controller process
+when launching each new measurement.
+For debugging, the user can disable this automatic invocation, and launch the
+Controller process manually with this console script.
+"""
+
 import argparse
 import logging
 import sys
@@ -14,9 +26,6 @@ from measurement_event_manager.util import log as mem_logging
 
 def main() -> None:
 	'''Launch a measurement
-
-	Launched automatically by the EventManager during normal operation. Can be
-	run directly when debugging, but you should know what you're doing!
 	
 	Note that the arguments are passed in from the command-line and not to the
 	function directly, to allow this function to be wrapped in a command-line
