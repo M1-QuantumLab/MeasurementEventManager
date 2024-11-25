@@ -24,3 +24,4 @@ The interfaces are instead the objects whose APIs should be conformed to.
 """
 
 from .rgc import ReferenceGuideClient
+from .rgcsh import GuideClientShell
