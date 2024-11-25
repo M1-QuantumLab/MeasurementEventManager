@@ -226,6 +226,10 @@ class ReferenceGuideClient:
 			sys.stdout.writelines(print_generator)
 
 
+	## Defining the fetch counter using the property decorator is extremely
+	## convenient, but has the disadvantage that we cannot easily see what the
+	## confirmed value from the server is outside of the log messages (as the
+	## setter has no return). As such, this structure may change in the future.
 	@property
 	def fetch_counter(self) -> int:
 		"""Server queue fetch counter value
@@ -235,7 +239,6 @@ class ReferenceGuideClient:
 		return counter
 
 	@fetch_counter.setter
-	def fetch_counter(self, new_value: int) -> int:
+	def fetch_counter(self, new_value: int):
 		counter = self._interface.set_counter(new_value)
-		self.logger.info(f"Fetch counter set to {counter}")
-		return counter
+		self.logger.info("Fetch counter set to %s", counter)

@@ -123,13 +123,16 @@ class GuideClientShell(cmd.Cmd):
 		Calling with no arguments will query the existing value.
 		"""
 
+		## Set/get the fetch counter
 		try:
 			new_value = int(new_value)
 		except ValueError:
-			print(f"Fetch counter is at {self.guide_client.fetch_counter}")
+			pass
 		else:
 			self.guide_client.fetch_counter = new_value
-			print(f"Fetch counter set to {self.guide_client.fetch_counter}")
+
+		## Informational messages
+		print(f"Fetch counter is {self.guide_client.fetch_counter}")
 
 
 	## Messaging and requests
