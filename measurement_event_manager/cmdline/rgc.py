@@ -119,6 +119,15 @@ def main():
 
 
 	if cmd_args.interactive:
+
+		## Remove the console handler
+		## TODO currently this is sufficient, as the console handler will
+		## always exist in this context. However, the way logging is handled
+		## should probably be changed, which will make it possible to carry
+		## out operations like this more robustly.
+		logger.removeHandler(logger.handlers[0])
+
+		## Launch shell
 		GuideClientShell(guide_client).cmdloop()
 
 
