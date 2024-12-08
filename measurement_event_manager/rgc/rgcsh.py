@@ -212,7 +212,8 @@ class GuideClientShell(cmd.Cmd):
 					index_spec.append(new_index)
 
 		## API call with parsed values (ie *not* strings!)
-		self.guide_client.remove(index_spec)
+		removed_indices = self.guide_client.remove(index_spec)
+		print(f'Removed indices: {removed_indices}')
 
 
 	def do_query(self, target):

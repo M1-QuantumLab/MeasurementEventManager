@@ -156,7 +156,7 @@ def main() -> None:
 	## Guide reply socket
 	guide_reply_socket = context.socket(zmq.REP)
 	guide_reply_socket.bind(guide_reply_endpoint)
-	logger.debug('Guide reply socket bound to {}'.format(guide_reply_endpoint))
+	logger.debug('Guide reply socket bound to %s', guide_reply_endpoint)
 
 	## Controller reply address
 	if cmd_args.meas_port is not None:
@@ -167,9 +167,7 @@ def main() -> None:
 	## Controller reply socket
 	ctrl_reply_socket = context.socket(zmq.REP)
 	ctrl_reply_socket.bind(ctrl_reply_endpoint)
-	logger.debug(
-		'Controller reply socket bound to {}'.format(ctrl_reply_endpoint)
-	)
+	logger.debug('Controller reply socket bound to %s', ctrl_reply_endpoint)
 
 	## Controller request address
 	## Passed to the instatiation function for the spawned Controller process
@@ -184,9 +182,7 @@ def main() -> None:
 	## Listener broadcast socket
 	listener_pub_socket = context.socket(zmq.PUB)
 	listener_pub_socket.bind(listener_pub_endpoint)
-	logger.debug(
-		'Listener pub socket bound to {}'.format(listener_pub_endpoint)
-	)
+	logger.debug('Listener pub socket bound to %s', listener_pub_endpoint)
 
 
 	## Set up poller for main event loop

@@ -141,8 +141,10 @@ class EventManager:
         ## If the fetch counter is at 0, we cannot attempt to start a new
         ## measurement
         elif self._fetch_counter == 0:
-            self.logger.debug('Fetch counter is at 0; skipping fetch and'
-                             ' waiting for increase')
+            self.logger.debug(
+                'Fetch counter is at 0; skipping fetch and waiting for '
+                'increase...'
+            )
             return False
 
         ## We are allowed to fetch a new measurement
@@ -161,8 +163,10 @@ class EventManager:
 
         ## Actual subprocess launch can be disabled for debugging
         if disable_launch:
-            self.logger.warning('Launch disabled; measurement thread is '
-                                'expected to be started manually.')
+            self.logger.warning(
+                'Launch disabled; measurement thread is expected to be '
+                'started manually.'
+            )
         else:
             self.logger.info('Launching measurement...')
             ## Identify the OS as creating a detached process is handled
@@ -308,8 +312,9 @@ class EventManager:
         ## specific to avoid weird behaviour
         if self._fetch_counter > 0:
             self._fetch_counter -= 1
-            self.logger.info('Fetch counter decremented to '
-                             '{}'.format(self._fetch_counter))
+            self.logger.info(
+                'Fetch counter decremented to %d', self._fetch_counter
+            )
         elif self._fetch_counter == 0:
             raise ValueError("Fetch counter is at 0; cannot be decremented")
         else:

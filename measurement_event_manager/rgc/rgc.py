@@ -106,7 +106,7 @@ class ReferenceGuideClient:
 		## (Re)open the socket
 		guide_request_socket = self._context.socket(zmq.REQ)
 		guide_request_socket.connect(self._endpoint)
-		self.logger.debug(f"Guide request socket bound to {self._endpoint}")
+		self.logger.debug("Guide request socket bound to %s", self._endpoint)
 		## Update the socket at the interface
 		self._interface.set_socket(guide_request_socket)
 
@@ -123,8 +123,8 @@ class ReferenceGuideClient:
 		"""
 
 		## Load config using himl consolidation
-		self.logger.debug(f"Loading from file: {config_path}")
-		self.logger.debug(f"himl base_dir is {base_dir}")
+		self.logger.info("Loading from file %s", config_path)
+		self.logger.debug("himl base_dir is %s", base_dir)
 		config = load_config(base_dir, config_path)
 		## Add the measurement based on the loaded config
 		self.add_from_dict(config)
@@ -178,7 +178,7 @@ class ReferenceGuideClient:
 
 		## Return the indices that were actually removed according to the
 		## server
-		self.logger.info(f"Successfully removed indices {removed_indices}")
+		self.logger.info("Successfully removed indices %s", removed_indices)
 		return removed_indices
 
 
@@ -235,7 +235,7 @@ class ReferenceGuideClient:
 		"""Server queue fetch counter value
 		"""
 		counter = self._interface.get_counter()
-		self.logger.info(f"Fetch counter is {counter}")
+		self.logger.info("Fetch counter is %s", counter)
 		return counter
 
 	@fetch_counter.setter
