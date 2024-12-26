@@ -135,6 +135,12 @@ class GuideClientShell(cmd.Cmd):
 		print(f"Fetch counter is {self.guide_client.fetch_counter}")
 
 
+	def do_counter(self, new_value):
+		"""Alias for `fetch`
+		"""
+		self.do_fetch(new_value)
+
+
 	## Messaging and requests
 	#########################
 
@@ -222,6 +228,12 @@ class GuideClientShell(cmd.Cmd):
 		Defaults to sys.stdout
 		"""
 		self.guide_client.dump_queue_contents(target)
+
+
+	def do_queue(self, target):
+		"""Alias for `query`
+		"""
+		self.do_query(target)
 
 
 	## pylint: disable-next=unused-argument
