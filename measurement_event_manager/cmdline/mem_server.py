@@ -231,7 +231,7 @@ def main() -> None:
 	logger.info('Running main event loop.')
 
 	spinner_kwargs = {
-		"title": "Server listening",
+		"title": "Server active",
 		"bar": False,
 		"enrich_print": False,
 		"monitor": False,

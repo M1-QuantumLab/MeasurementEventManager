@@ -9,13 +9,13 @@ objects.
 
 .. note::
 
-   Although the user is not required to directly interact with MeasurementParams
+   Although the user is not required to directly interact with Measurement
    objects at any point, it is helpful to understand their behaviour as they
    provide constraints on the components of a measurement definition.
 
 A measurement definition is constructured from a dict or Python mapping,
 with several top-level keys corresponding to attributes of the resulting
-MeasurementParams object.
+Measurement object.
 For user-input-based usage, it is recommended to store the measurement
 definition in a YAML file, which can be read and parsed by a Guide client.
 For programmatic usage, a ``dict`` or mapping-like object can be used directly.
