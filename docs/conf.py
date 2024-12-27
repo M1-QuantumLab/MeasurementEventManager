@@ -3,6 +3,8 @@
 import os
 import sys
 
+import measurement_event_manager as mem
+
 ## Add path to package root
 parent = os.path.dirname(os.path.dirname(__file__))
 sys.path.append(parent)
@@ -13,8 +15,9 @@ project = 'MeasurementEventManager'
 copyright = '2023-2024, Sam Wolski'
 author = 'Sam Wolski'
 
-release = '0.4'
-version = '0.4.2'
+## Dynamic version numbering
+version = mem.__version__
+release = '.'.join(version.split('.')[:2])
 
 # -- General configuration
 
