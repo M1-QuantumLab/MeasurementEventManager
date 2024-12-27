@@ -11,16 +11,10 @@ The rules of the messaging protocol dictate what requests are possible,
 although a Guide client is free to provide whatever interface to these requests
 best suits the user.
 
-The following examples show the process using
-`samsguideclient <https://github.com/SamWolski/samsguideclient/>`_
-which will be integrated into the MEM distribution in the near future.
-The package provides both a scripting API and an interactive command-line
-interface.
-
-.. note::
-
-   Currently, the examples in this section require the ``samsguideclient``
-   package.
+The following examples show the process using the provided
+:doc:`rgc </autoapi/measurement_event_manager/rgc/index>`
+Guide client.
+It provides both a scripting API and an interactive command-line interface.
 
 
 Interactive command-line interface
@@ -30,9 +24,9 @@ The interactive command-line interface can be invoked from a terminal using
 
 ::
 
-   $ sgc -i
+   $ rgc -i
 
-The following commands are available in the sgc shell:
+The following commands are available in the rgc shell:
 
 - ``add <measurement_path> [<measurement_path_2> ...]`` submits the
   measurement definitions loaded from the files at the various locations
@@ -44,12 +38,14 @@ The following commands are available in the sgc shell:
   Multiple index specifications will be parsed *before* any deletions are
   carried out, so ``remove 0 3`` will not unintentionally remove the
   item at index 4 (which would be at index 3 once index 0 is removed).
-- ``query [<target>]`` fetches the current state of the queue, i.e. all the
-  measurement definitions that currently make up the queue.
+- ``query [<target>]`` or ``queue [<target>]`` fetches the current state of
+  the queue, i.e. all the measurement definitions that currently make up the
+  queue.
   These are written to the ``target`` (a file-like object), or if no target is
   provided, printed to the standard output.
 - ``len`` fetches the current length of the queue (the number of measurements).
-- ``fetch [<counter_value>]`` interacts with the fetch counter.
+- ``fetch [<counter_value>]`` or ``counter [<counter_value>]`` interacts with
+  the fetch counter.
   If no argument is provided, it gets the current value.
   If an argument is provided, in this case a single integer, the fetch counter
   will be set to this value.
