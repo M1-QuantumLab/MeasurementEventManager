@@ -137,7 +137,7 @@ class PyHegelServer(BaseServer):
         ## Construct the target file path
         ## Get the file name and directory
         target_filename = params.output.get('filename', 'default.txt')
-        data_dir = params.output.get('data_dir', None)
+        data_dir = params.output.get('data_dir', 'data')
         ## Make sure the directory exists (otherwise pyHegel fails)
         if not os.path.exists(data_dir):
             self.logger.debug(f'Creating dirs: {data_dir}')
