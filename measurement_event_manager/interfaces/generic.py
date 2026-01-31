@@ -262,7 +262,38 @@ class ReplyInterface(MessageInterface):
 
 class BroadcastInterface(MessageInterface):
 
-    def _send_broadcast(self, header, body):
-        
-        self._send_message(header, body)
 
+    def _send_broadcast(self,
+        header: str,
+        body: Optional[Sequence[str]] = None,
+        ) -> bool:
+        """Broadcast a message
+        """
+
+        self._send_message(header, body)
+        return True
+
+
+## Receive interface for PUB-SUB
+################################
+
+
+class SubscribeInterface(MessageInterface):
+
+
+    def _receive_broadcast(self) -> dict:
+        """Receive and parse a broadcast
+
+        Returns:
+            A dict containing the request protocol, header, and body, keyed as
+            such. The protocol and header are single strings, while the body
+            is a list.
+        """
+
+        ## Receive and unpack broadcast
+        broadcast_wrapped = self.socket.recv_multipart()
+        self.logger.debug('Received broadcast:')
+        self.logger.debug(broadcast_wrapped)
+        broadcast_dict = self._unpack_message(broadcast_wrapped)
+
+        return broadcast_dict

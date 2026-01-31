@@ -50,6 +50,7 @@ class EventManager:
         controller_endpoint: str,
         instrument_config: Mapping,
         fetch_counter: int = 0,
+        listener_interface = None,
         ):
         """Foo bar
 
@@ -61,6 +62,8 @@ class EventManager:
             instrument server plugin.
             fetch_counter: The initial value for the fetch counter, tracking
             how many measurements to pull from the queue automatically.
+            listener_interface: A Listener interface instance, used to publish
+            information about completed measurements.
         """
 
         ## Assign logger
@@ -78,6 +81,7 @@ class EventManager:
         ## Declare variables for later
         self._instrument_config = instrument_config
         self._meas_request_endpoint = controller_endpoint
+        self._listener_interface = listener_interface
 
 
     ## Config and instrument setup
@@ -219,7 +223,7 @@ class EventManager:
         self._current_measurement = None
 
 
-    def measurement_finished(self, received_message: Iterable) -> None:
+    def measurement_finished(self, meas_json) -> None:
         """Indicate that the active measurement has finished
 
         Pipes the received measurement data to the publisher socket.
@@ -227,22 +231,13 @@ class EventManager:
         Args:
             received_message: serialized measurement data
         """
-        self.logger.info('Measurement completed; broadcasting to listeners...')
+        self.logger.info('Measurement completed')
         ## Clear the current measurement attribute
         self.clear_current_measurement()
         ## Publish the serialized measurement data
-        ## TODO clean this up so it's not a message, but the underlying object
-        measurement_json = received_message[0]
-        ## TODO implement the publication
-        # self.publish_measurement(measurement_json)
-
-
-    def publish_measurement(self, measurement_json: str):
-        """Publish serialized measurement data to the listener pub socket
-
-        This is currently not implemented! Do not use.
-        """
-        raise NotImplementedError
+        if self._listener_interface:
+            self.logger.info('Broadcasting to listeners...')
+            self._listener_interface.publish(meas_json)
 
 
     def fetch_counter(self, set_counter: Optional[int] = None) -> int:

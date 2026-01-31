@@ -22,6 +22,7 @@ from measurement_event_manager import _const
 from measurement_event_manager.event_manager import EventManager
 from measurement_event_manager.interfaces.controller import ControllerReplyInterface
 from measurement_event_manager.interfaces.guide import GuideReplyInterface
+from measurement_event_manager.interfaces.listener import ListenerPublishInterface
 from measurement_event_manager.util import log as mem_logging
 
 
@@ -200,12 +201,20 @@ def main() -> None:
 	with open(instrument_config_path, 'r') as config_file:
 		instrument_config = yaml.safe_load(config_file)
 
+	## Instantiate Listener pub interface
+	listener_interface = ListenerPublishInterface(
+		socket=listener_pub_socket,
+		protocol_name='MEM-LS/0.1',
+		logger=logger,
+	)
+
 	## Instantiate EventManager
 	event_manager = EventManager(
 		logger=logger,
 		controller_endpoint=ctrl_request_endpoint,
 		instrument_config=instrument_config,
 		fetch_counter=cmd_args.fetch_counter,
+		listener_interface=listener_interface,
 	)
 
 	## Instantiate interfaces
