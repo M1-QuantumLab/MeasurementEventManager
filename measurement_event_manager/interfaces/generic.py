@@ -58,8 +58,8 @@ class MessageInterface:
         """
 
         if logger is None:
-            self.logger = logging.getLogger(__name__)\
-                                 .addHandler(logging.NullHandler())
+            self.logger = logging.getLogger(__name__)
+            self.logger.addHandler(logging.NullHandler())
         else:
             self.logger = logger
         self.set_socket(socket)
